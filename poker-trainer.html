@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NLHE キャッシュゲーム基礎トレーナー｜プリフロップ・エクイティ・ポットオッズ</title>
-<meta name="description" content="テキサスホールデム(NLHE)で勝つための基礎反復トレーナー。プリフロップのレンジ判断、エクイティ計算、ポットオッズ/EV判断をブラウザだけで練習できる無料ツール。">
+<meta name="description" content="テキサスホールデム(NLHE)で勝つための基礎反復トレーナー。RFI・vsオープン・BBディフェンスのレンジ判断、エクイティ計算、ポットオッズ/EV判断をブラウザだけで練習できる無料ツール。">
 <style>
 :root{
   --bg:#0b1410; --panel:#10201a; --panel2:#15291f; --line:#244234;
   --txt:#e7f0ea; --sub:#8fb2a0; --accent:#2fae6b; --accent2:#4de39a; --gold:#ffd24d;
-  --red:#ff5d6c; --bad:#ff5d6c; --good:#4de39a;
+  --call:#2e86de; --red:#ff5d6c; --bad:#ff5d6c; --good:#4de39a;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--txt);
@@ -31,25 +31,34 @@ h1 .c{color:var(--accent2);}
 .btn{background:linear-gradient(135deg,var(--accent),#1f8a52);color:#fff;border:none;border-radius:9px;
   padding:11px 16px;font-size:.9rem;font-weight:700;cursor:pointer;}
 .btn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--sub);}
-.btn.big{font-size:1.05rem;padding:14px 20px;flex:1;}
+.btn.big{font-size:1rem;padding:13px 10px;flex:1;line-height:1.25;}
+.btn.big small{font-weight:400;font-size:.7rem;opacity:.85;}
+.btn.call{background:linear-gradient(135deg,var(--call),#1b4f8a);}
 .btn.fold{background:linear-gradient(135deg,#c0392b,#922b21);}
 select,input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
   border-radius:8px;padding:9px 8px;font-size:.92rem;width:100%;}
 label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;gap:4px;}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
 
-/* ---- trainer ---- */
-.tcard{text-align:center;padding:10px 0 4px;}
-.pos{font-size:.82rem;color:var(--sub);margin-bottom:6px;}
-.pos b{color:var(--gold);font-size:1.0rem;}
+/* mode selector */
+.modesel{display:flex;gap:6px;margin-bottom:14px;}
+.mbtn{flex:1;text-align:center;padding:9px 4px;border:1px solid var(--line);background:var(--panel2);
+  border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:700;color:var(--sub);transition:.15s;user-select:none;}
+.mbtn small{display:block;font-weight:400;font-size:.66rem;margin-top:2px;}
+.mbtn.on{background:linear-gradient(135deg,var(--accent),#1f8a52);color:#fff;border-color:transparent;}
+
+/* trainer */
+.tcard{text-align:center;padding:6px 0 4px;}
+.pos{font-size:.84rem;color:var(--sub);margin-bottom:8px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:10px;padding:8px 10px;}
+.pos b{color:var(--gold);}
 .cards{display:flex;justify-content:center;gap:10px;margin:6px 0 14px;}
-.pcard{width:74px;height:104px;background:#fff;border-radius:10px;position:relative;
-  display:flex;align-items:center;justify-content:center;flex-direction:column;
-  box-shadow:0 6px 18px rgba(0,0,0,.4);}
+.pcard{width:74px;height:104px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;box-shadow:0 6px 18px rgba(0,0,0,.4);}
 .pcard .rk{font-size:2.1rem;font-weight:800;line-height:1;}
 .pcard .st{font-size:1.5rem;line-height:1;}
 .pcard.red{color:#d6273e;} .pcard.blk{color:#15201a;}
-.actions{display:flex;gap:10px;margin-top:6px;}
+.actions{display:flex;gap:8px;margin-top:6px;}
 .fb{margin-top:14px;border-radius:10px;padding:12px;font-size:.9rem;text-align:center;font-weight:600;}
 .fb.ok{background:rgba(77,227,154,.12);border:1px solid var(--good);color:var(--good);}
 .fb.ng{background:rgba(255,93,108,.12);border:1px solid var(--bad);color:var(--bad);}
@@ -59,16 +68,17 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .stats .b .n{font-size:1.3rem;font-weight:800;color:var(--gold);}
 .stats .b .l{font-size:.68rem;color:var(--sub);}
 
-/* ---- range chart ---- */
+/* chart */
 .chart{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;margin-top:6px;}
 .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:700;
   border-radius:3px;background:var(--panel2);color:var(--sub);}
-.cell.open{background:var(--accent);color:#06150d;}
-.cell.pair{outline:1px solid var(--gold);}
+.cell.open,.cell.cc{background:var(--accent);color:#06150d;}
+.cell.c3{background:var(--gold);color:#3a2a00;}
+.cell.pair{outline:1px solid #fff6;}
 .legend{display:flex;gap:14px;font-size:.74rem;color:var(--sub);margin-top:10px;align-items:center;flex-wrap:wrap;}
 .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:4px;}
 
-/* ---- equity / cards select ---- */
+/* equity / odds */
 .cardsel{display:flex;gap:6px;flex-wrap:wrap;}
 .cardsel select{width:auto;min-width:64px;flex:1 1 64px;}
 .eqres{background:linear-gradient(135deg,#10261b,#10201a);border:1px solid var(--accent);border-radius:12px;padding:14px;margin-top:12px;}
@@ -82,7 +92,7 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-height:1.8;}
 @media(max-width:480px){
   h1{font-size:1.08rem;} .pcard{width:62px;height:88px;} .pcard .rk{font-size:1.7rem;} .pcard .st{font-size:1.2rem;}
-  .tab{min-width:80px;font-size:.76rem;} .cell{font-size:.42rem;}
+  .tab{min-width:80px;font-size:.76rem;} .cell{font-size:.42rem;} .btn.big{font-size:.86rem;padding:11px 4px;}
 }
 </style>
 </head>
@@ -90,7 +100,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
 <div class="wrap">
 <header>
   <h1>NLHE <span class="c">基礎トレーナー</span></h1>
-  <p class="lead">テキサスホールデムのキャッシュで勝つための土台を反復で固める。プリフロップ判断・エクイティ・ポットオッズの3本柱。ブラウザだけ・オフライン可。</p>
+  <p class="lead">テキサスホールデムのキャッシュで勝つための土台を反復で固める。プリフロップ判断・エクイティ・ポットオッズ。ブラウザだけ・オフライン可。</p>
 </header>
 
 <div class="tabs">
@@ -104,13 +114,15 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
 <section id="tab-train">
   <div class="panel">
     <h2><span class="dot"></span>プリフロップ レンジ特訓</h2>
+    <div class="modesel">
+      <div class="mbtn on" data-m="rfi">RFI<small>最初に参加</small></div>
+      <div class="mbtn" data-m="vsopen">vsオープン<small>BTNで対応</small></div>
+      <div class="mbtn" data-m="bb">BBディフェンス<small>BBで受ける</small></div>
+    </div>
     <div class="tcard">
-      <div class="pos">ポジション：<b id="tPos">BTN</b>（6-max・最初に動く＝RFI）</div>
+      <div class="pos" id="tScene"></div>
       <div class="cards" id="tCards"></div>
-      <div class="actions">
-        <button class="btn big" id="bOpen">オープン<br><small style="font-weight:400">(レイズ)</small></button>
-        <button class="btn big fold" id="bFold">フォールド<br><small style="font-weight:400">(降りる)</small></button>
-      </div>
+      <div class="actions" id="tActions"></div>
       <div id="tFb"></div>
       <div class="stats">
         <div class="b"><div class="n" id="sCorrect">0</div><div class="l">正解</div></div>
@@ -119,25 +131,20 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
         <div class="b"><div class="n" id="sStreak">0</div><div class="l">連続正解</div></div>
       </div>
     </div>
-    <div class="note">標準的な6-maxのRFI（最初にレイズで参加する手）レンジで判定します。<b>厳密GTOではなく実戦的な目安</b>。迷ったら「レンジ表」タブで全体像を確認しましょう。間違えた手＝あなたの穴です。</div>
+    <div class="note" id="modeNote"></div>
   </div>
 </section>
 
 <!-- ===== CHART ===== -->
 <section id="tab-chart" class="hide">
   <div class="panel">
-    <h2><span class="dot"></span>RFIレンジ表</h2>
-    <label class="fld" style="max-width:220px;margin-bottom:10px;">ポジション
+    <h2><span class="dot"></span>レンジ表</h2>
+    <label class="fld" style="max-width:260px;margin-bottom:10px;">シナリオ
       <select id="chartPos"></select>
     </label>
     <div class="chart" id="chart"></div>
-    <div class="legend">
-      <span><i style="background:var(--accent)"></i>オープンする手</span>
-      <span><i style="background:var(--panel2)"></i>降りる手</span>
-      <span><i style="outline:1px solid var(--gold);background:transparent"></i>ペア(対角)</span>
-      <span id="rfiPct" style="color:var(--gold)"></span>
-    </div>
-    <div class="note">表の上半分（右上）がスーテッド、下半分（左下）がオフスート、対角がポケットペア。後ろのポジションほどレンジが広がります。</div>
+    <div class="legend" id="legend"></div>
+    <div class="note">表の上半分（右上）がスーテッド、下半分（左下）がオフスート、対角がポケットペア。vsオープン/BBではコール（緑）と3ベット（金）が分かれて見えます。</div>
   </div>
 </section>
 
@@ -146,17 +153,13 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   <div class="panel">
     <h2><span class="dot"></span>エクイティ計算機（モンテカルロ）</h2>
     <label class="fld">あなたのハンド</label>
-    <div class="cardsel" style="margin:4px 0 12px;">
-      <select id="h1"></select><select id="h2"></select>
-    </div>
+    <div class="cardsel" style="margin:4px 0 12px;"><select id="h1"></select><select id="h2"></select></div>
     <label class="fld">相手</label>
     <div class="row" style="margin:4px 0 12px;">
       <label class="fld" style="flex:0 1 150px;">相手の指定
         <select id="vMode"><option value="rand">ランダム(任意の手)</option><option value="spec">特定ハンド</option></select>
       </label>
-      <div class="cardsel" style="flex:1;">
-        <select id="v1"></select><select id="v2"></select>
-      </div>
+      <div class="cardsel" style="flex:1;"><select id="v1"></select><select id="v2"></select></div>
     </div>
     <label class="fld">ボード（任意・空欄でプリフロップ）</label>
     <div class="cardsel" style="margin:4px 0 12px;">
@@ -164,7 +167,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
     </div>
     <button class="btn" id="eqBtn">エクイティを計算</button>
     <div id="eqOut"></div>
-    <div class="note">指定したカード以外の残りデッキからボード/相手手をランダムに数千回配って勝率を算出します。相手「ランダム」での結果＝そのハンドの素の強さの目安です。</div>
+    <div class="note">指定カード以外の残りデッキからボード/相手手をランダムに数千回配って勝率を算出。相手「ランダム」＝そのハンドの素の強さの目安です。</div>
   </div>
 </section>
 
@@ -173,24 +176,17 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   <div class="panel">
     <h2><span class="dot"></span>ポットオッズ計算機</h2>
     <div class="row">
-      <label class="fld" style="flex:1;">現在のポット
-        <input type="number" id="potSize" value="100" min="0">
-      </label>
-      <label class="fld" style="flex:1;">相手のベット(コール額)
-        <input type="number" id="betSize" value="50" min="0">
-      </label>
-      <label class="fld" style="flex:1;">あなたのエクイティ%
-        <input type="number" id="myEq" value="35" min="0" max="100">
-      </label>
+      <label class="fld" style="flex:1;">現在のポット<input type="number" id="potSize" value="100" min="0"></label>
+      <label class="fld" style="flex:1;">相手のベット(コール額)<input type="number" id="betSize" value="50" min="0"></label>
+      <label class="fld" style="flex:1;">あなたのエクイティ%<input type="number" id="myEq" value="35" min="0" max="100"></label>
     </div>
     <button class="btn" id="oddsBtn" style="margin-top:12px;">判定する</button>
     <div id="oddsOut"></div>
-    <div class="note">必要エクイティ ＝ コール額 ÷ (ポット＋コール額＋自分のコール)。あなたのエクイティがこれを上回ればコールが利益（+EV）です。エクイティは上の計算機で出せます。</div>
+    <div class="note">必要エクイティ ＝ コール額 ÷ (ポット＋相手ベット＋自分のコール)。あなたのエクイティがこれを上回ればコールが利益（+EV）です。</div>
   </div>
-
   <div class="panel">
     <h2><span class="dot"></span>EV判断クイズ</h2>
-    <p class="lead" style="text-align:left;margin-bottom:10px;">ランダムな状況でコール/フォールドを即断する反復ドリル。ポットオッズとエクイティを瞬時に比べる力がつきます。</p>
+    <p class="lead" style="text-align:left;margin-bottom:10px;">ランダムな状況でコール/フォールドを即断する反復ドリル。</p>
     <div id="quizBox"></div>
     <div class="stats" style="margin-top:12px;">
       <div class="b"><div class="n" id="qCorrect">0</div><div class="l">正解</div></div>
@@ -202,83 +198,71 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
 
 <footer>
   NLHEキャッシュゲーム基礎トレーナー（個人練習用）｜役判定はクライアント内モンテカルロ<br>
-  レンジは標準的な目安です。厳密なGTOはソルバー(GTO Wizard等)と併用してください。
+  レンジは標準的な目安（簡略化したマージ型）です。厳密なGTOはソルバー(GTO Wizard等)と併用してください。
 </footer>
 </div>
 
 <script>
 /* ===== カード基盤 ===== */
 const RANKS=["2","3","4","5","6","7","8","9","T","J","Q","K","A"];
-const RVAL={ "2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"T":10,"J":11,"Q":12,"K":13,"A":14 };
+const RVAL={"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"T":10,"J":11,"Q":12,"K":13,"A":14};
 const SUITS=["s","h","d","c"];
 const SSYM={s:"♠",h:"♥",d:"♦",c:"♣"};
 const SRED={h:1,d:1};
 const $=s=>document.querySelector(s);
+function fullDeck(){const d=[];for(const r of RANKS)for(const s of SUITS)d.push(r+s);return d;}
+function cardObj(c){return {r:RVAL[c[0]],s:c[1]};}
 
-function fullDeck(){ const d=[]; for(const r of RANKS) for(const s of SUITS) d.push(r+s); return d; }
-function cardObj(c){ return {r:RVAL[c[0]], s:c[1]}; }
-
-/* ===== 役評価（5枚→スコア配列） ===== */
-function rank5(cs){ // cs: [{r,s}*5]
+/* ===== 役評価（検証済み） ===== */
+function rank5(cs){
   const rs=cs.map(c=>c.r).sort((a,b)=>b-a);
   const flush=cs.every(c=>c.s===cs[0].s);
-  const cnt={}; rs.forEach(r=>cnt[r]=(cnt[r]||0)+1);
-  const uniq=[...new Set(rs)];
-  let straight=false, top=0;
+  const cnt={};rs.forEach(r=>cnt[r]=(cnt[r]||0)+1);
+  const uniq=[...new Set(rs)];let straight=false,top=0;
   if(uniq.length===5){
-    if(uniq[0]-uniq[4]===4){ straight=true; top=uniq[0]; }
-    else if(uniq[0]===14&&uniq[1]===5&&uniq[2]===4&&uniq[3]===3&&uniq[4]===2){ straight=true; top=5; }
+    if(uniq[0]-uniq[4]===4){straight=true;top=uniq[0];}
+    else if(uniq[0]===14&&uniq[1]===5&&uniq[2]===4&&uniq[3]===3&&uniq[4]===2){straight=true;top=5;}
   }
-  const groups=Object.entries(cnt).map(([r,c])=>[c,+r]).sort((a,b)=> b[0]-a[0]||b[1]-a[1]);
-  const counts=groups.map(g=>g[0]), kick=groups.map(g=>g[1]);
-  if(straight&&flush) return [8,top];
-  if(counts[0]===4) return [7,kick[0],kick[1]];
-  if(counts[0]===3&&counts[1]===2) return [6,kick[0],kick[1]];
-  if(flush) return [5,...rs];
-  if(straight) return [4,top];
-  if(counts[0]===3) return [3,kick[0],kick[1],kick[2]];
-  if(counts[0]===2&&counts[1]===2) return [2,kick[0],kick[1],kick[2]];
-  if(counts[0]===2) return [1,kick[0],kick[1],kick[2],kick[3]];
-  return [0,...rs];
+  const groups=Object.entries(cnt).map(([r,c])=>[c,+r]).sort((a,b)=>b[0]-a[0]||b[1]-a[1]);
+  const counts=groups.map(g=>g[0]),kick=groups.map(g=>g[1]);
+  if(straight&&flush)return[8,top];
+  if(counts[0]===4)return[7,kick[0],kick[1]];
+  if(counts[0]===3&&counts[1]===2)return[6,kick[0],kick[1]];
+  if(flush)return[5,...rs];
+  if(straight)return[4,top];
+  if(counts[0]===3)return[3,kick[0],kick[1],kick[2]];
+  if(counts[0]===2&&counts[1]===2)return[2,kick[0],kick[1],kick[2]];
+  if(counts[0]===2)return[1,kick[0],kick[1],kick[2],kick[3]];
+  return[0,...rs];
 }
-function cmp(a,b){ const n=Math.max(a.length,b.length); for(let i=0;i<n;i++){ const x=a[i]||0,y=b[i]||0; if(x!==y) return x-y; } return 0; }
-function best7(cards){ // 7 {r,s}
-  let best=null;
-  for(let i=0;i<7;i++) for(let j=i+1;j<7;j++){
-    const five=[]; for(let k=0;k<7;k++){ if(k!==i&&k!==j) five.push(cards[k]); }
-    const s=rank5(five);
-    if(!best||cmp(s,best)>0) best=s;
-  }
-  return best;
-}
-
-/* ===== モンテカルロ ===== */
-function sampleN(deck, n, used){ // pick n distinct not in used set; returns array, mutates a copy
-  const pool=deck.filter(c=>!used.has(c));
-  for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  return pool.slice(0,n);
-}
-function equity(hero, villain, board, iters){
-  // hero:[c,c] strings; villain:[c,c]|null; board:[...] strings
-  const deck=fullDeck();
-  let win=0,tie=0,lose=0;
-  for(let it=0; it<iters; it++){
-    const used=new Set([...hero, ...(villain||[]), ...board]);
-    const needBoard=5-board.length;
-    const needVill=villain?0:2;
-    const draw=sampleN(deck, needBoard+needVill, used);
-    const fullBoard=[...board, ...draw.slice(0,needBoard)].map(cardObj);
+function cmp(a,b){const n=Math.max(a.length,b.length);for(let i=0;i<n;i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x-y;}return 0;}
+function best7(cards){let best=null;for(let i=0;i<7;i++)for(let j=i+1;j<7;j++){const five=[];for(let k=0;k<7;k++){if(k!==i&&k!==j)five.push(cards[k]);}const s=rank5(five);if(!best||cmp(s,best)>0)best=s;}return best;}
+function sampleN(deck,n,used){const pool=deck.filter(c=>!used.has(c));for(let i=pool.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[pool[i],pool[j]]=[pool[j],pool[i]];}return pool.slice(0,n);}
+function equity(hero,villain,board,iters){
+  const deck=fullDeck();let win=0,tie=0,lose=0;
+  for(let it=0;it<iters;it++){
+    const used=new Set([...hero,...(villain||[]),...board]);
+    const needBoard=5-board.length,needVill=villain?0:2;
+    const draw=sampleN(deck,needBoard+needVill,used);
+    const fullBoard=[...board,...draw.slice(0,needBoard)].map(cardObj);
     const vh=(villain?villain:draw.slice(needBoard)).map(cardObj);
-    const hs=best7([...hero.map(cardObj), ...fullBoard]);
-    const vs=best7([...vh, ...fullBoard]);
-    const c=cmp(hs,vs);
-    if(c>0) win++; else if(c<0) lose++; else tie++;
+    const hs=best7([...hero.map(cardObj),...fullBoard]);
+    const vs=best7([...vh,...fullBoard]);
+    const c=cmp(hs,vs);if(c>0)win++;else if(c<0)lose++;else tie++;
   }
   return {win,tie,lose,iters,eq:(win+tie/2)/iters*100};
 }
 
-/* ===== プリフロップ レンジ（6-max RFI 目安） ===== */
-// 各ポジション: pair最小, suited{高ランク:最低キッカー}, offsuit{高ランク:最低キッカー}
+/* ===== レンジ定義 ===== */
+// テーブル: {pair:最小ペア, s:{高ランク:最低キッカー}, o:{...}}。キーはランク文字、値はランク数値。
+function inRange(hi,lo,suited,tbl){
+  if(hi===lo) return hi>=tbl.pair;
+  const hk=RANKS[hi-2];
+  const t=suited?tbl.s:tbl.o;
+  const min=t[hk];
+  return (min!==undefined)&&(lo>=min);
+}
+// RFI（6-max 最初に参加）
 const RANGES={
   UTG:{pair:2, s:{A:2,K:10,Q:10,J:10,T:9,9:8,8:7,7:6,6:5,5:4}, o:{A:11,K:12}},
   HJ: {pair:2, s:{A:2,K:9,Q:9,J:9,T:8,9:7,8:6,7:6,6:5,5:4}, o:{A:10,K:11,Q:12}},
@@ -287,14 +271,33 @@ const RANGES={
   SB: {pair:2, s:{A:2,K:5,Q:6,J:7,T:7,9:6,8:5,7:5,6:4,5:4,4:3}, o:{A:5,K:9,Q:9,J:9,T:9}},
 };
 const POSORDER=["UTG","HJ","CO","BTN","SB"];
-// hand: hi,lo (rank values, hi>=lo), suited bool
-function isOpen(hi,lo,suited,pos){
-  const R=RANGES[pos];
-  if(hi===lo) return hi>=R.pair;                 // ペア
-  const hk=RANKS[hi-2];                            // 高ランク文字
-  const tbl=suited?R.s:R.o;
-  const min=tbl[hk];
-  return (min!==undefined)&&(lo>=min);
+function isOpen(hi,lo,suited,pos){return inRange(hi,lo,suited,RANGES[pos]);}
+
+// vsオープン（相手のレイズに直面）: tb=3ベット, cl=コール。3ベット優先で判定。
+const VS={
+  // あなた=BTN（ポジションあり）
+  BTNvUTG:{hero:"BTN",opener:"UTG", tb:{pair:11,s:{A:12,K:12},o:{A:13}},
+    cl:{pair:2,s:{A:10,K:10,Q:10,J:10,T:9,9:8,8:7,7:6},o:{A:12,K:12}}},
+  BTNvHJ:{hero:"BTN",opener:"HJ", tb:{pair:10,s:{A:11,K:12},o:{A:12}},
+    cl:{pair:2,s:{A:9,K:9,Q:9,J:9,T:8,9:7,8:6,7:6,6:5},o:{A:11,K:12}}},
+  BTNvCO:{hero:"BTN",opener:"CO", tb:{pair:9,s:{A:11,K:11,Q:12},o:{A:11,K:12}},
+    cl:{pair:2,s:{A:2,K:7,Q:8,J:8,T:7,9:6,8:5,7:5,6:4,5:4},o:{A:9,K:10,Q:10,J:10}}},
+  // あなた=BB（ディフェンス・コール広め）
+  BBvUTG:{hero:"BB",opener:"UTG", tb:{pair:11,s:{A:12,K:12},o:{A:13}},
+    cl:{pair:2,s:{A:2,K:7,Q:8,J:8,T:8,9:7,8:7,7:6,6:5,5:4},o:{A:10,K:11,Q:11}}},
+  BBvHJ:{hero:"BB",opener:"HJ", tb:{pair:10,s:{A:11,K:12},o:{A:12}},
+    cl:{pair:2,s:{A:2,K:5,Q:6,J:7,T:7,9:6,8:6,7:5,6:5,5:4},o:{A:8,K:10,Q:10,J:10}}},
+  BBvCO:{hero:"BB",opener:"CO", tb:{pair:10,s:{A:11,K:11},o:{A:12}},
+    cl:{pair:2,s:{A:2,K:3,Q:4,J:6,T:6,9:5,8:5,7:4,6:4,5:3,4:3},o:{A:5,K:8,Q:9,J:9,T:9}}},
+  BBvBTN:{hero:"BB",opener:"BTN", tb:{pair:9,s:{A:10,K:11},o:{A:11,K:12}},
+    cl:{pair:2,s:{A:2,K:2,Q:2,J:4,T:5,9:4,8:4,7:4,6:3,5:3,4:2,3:2},o:{A:2,K:5,Q:7,J:8,T:8,9:7}}},
+  BBvSB:{hero:"BB",opener:"SB", tb:{pair:9,s:{A:9,K:10},o:{A:10,K:12}},
+    cl:{pair:2,s:{A:2,K:2,Q:3,J:5,T:6,9:5,8:5,7:4,6:4,5:3,4:3},o:{A:3,K:6,Q:8,J:8,T:8,9:7}}},
+};
+function classify(hi,lo,suited,sc){
+  if(inRange(hi,lo,suited,sc.tb)) return "3bet";
+  if(inRange(hi,lo,suited,sc.cl)) return "call";
+  return "fold";
 }
 function handLabel(hi,lo,suited){
   if(hi===lo) return RANKS[hi-2]+RANKS[hi-2];
@@ -312,75 +315,121 @@ document.querySelectorAll(".tab").forEach(t=>{
 });
 
 /* ===== レンジ特訓 ===== */
-let tState=null, sC=0,sT=0,sStreak=0;
+let tMode="rfi", tState=null, sC=0,sT=0,sStreak=0;
+const VSKEYS={vsopen:["BTNvUTG","BTNvHJ","BTNvCO"], bb:["BBvUTG","BBvHJ","BBvCO","BBvBTN","BBvSB"]};
+const ACTLABEL={open:"オープン",fold:"フォールド","3bet":"3ベット",call:"コール"};
+const MODENOTE={
+  rfi:"あなたが最初にポットに入る場面。ここは<b>レイズ(オープン) か フォールド</b>の二択。リンプ参加はリークなのでコールはありません。",
+  vsopen:"相手がオープンした後、あなたがBTNで対応する場面。<b>3ベット/コール/フォールド</b>の3択。レイズには弱いがコールで参加すると得な手があります。",
+  bb:"相手のオープンに対し、あなたがBB（ビッグブラインド）で受ける場面。割引価格で見れるので<b>コールで広く受ける</b>のが基本。プロが一番差をつける領域です。"
+};
+document.querySelectorAll(".mbtn").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".mbtn").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); tMode=b.dataset.m;
+    $("#modeNote").innerHTML=MODENOTE[tMode];
+    newTrain();
+  };
+});
 function pcardHTML(rank,suit){
   const red=SRED[suit]?"red":"blk";
   return `<div class="pcard ${red}"><div class="rk">${rank}</div><div class="st">${SSYM[suit]}</div></div>`;
 }
+function renderActions(threeway){
+  const a=$("#tActions");
+  a.innerHTML = threeway
+    ? `<button class="btn big" data-act="3bet">3ベット<br><small>再レイズ</small></button>
+       <button class="btn big call" data-act="call">コール<br><small>付き合う</small></button>
+       <button class="btn big fold" data-act="fold">フォールド<br><small>降りる</small></button>`
+    : `<button class="btn big" data-act="open">オープン<br><small>レイズ</small></button>
+       <button class="btn big fold" data-act="fold">フォールド<br><small>降りる</small></button>`;
+  a.querySelectorAll("button").forEach(btn=>btn.onclick=()=>answer(btn.dataset.act));
+}
 function newTrain(){
-  // ランダムにポジション
-  const pos=POSORDER[(Math.random()*POSORDER.length)|0];
-  // コンボ重み付きでハンド生成（実際のカード2枚から）
   const deck=fullDeck();
-  for(let i=deck.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [deck[i],deck[j]]=[deck[j],deck[i]]; }
-  const c1=deck[0], c2=deck[1];
-  let hi=RVAL[c1[0]], lo=RVAL[c2[0]];
+  for(let i=deck.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[deck[i],deck[j]]=[deck[j],deck[i]];}
+  const c1=deck[0],c2=deck[1];
+  let hi=RVAL[c1[0]],lo=RVAL[c2[0]];
   const suited=c1[1]===c2[1];
-  if(lo>hi){ [hi,lo]=[lo,hi]; }
-  tState={pos,hi,lo,suited,c1,c2};
-  $("#tPos").textContent=pos;
-  // 高い方を左に表示
-  let left=c1,right=c2;
-  if(RVAL[c2[0]]>RVAL[c1[0]]){ left=c2; right=c1; }
+  if(lo>hi){[hi,lo]=[lo,hi];}
+  let correct,scene,threeway;
+  if(tMode==="rfi"){
+    const pos=POSORDER[(Math.random()*POSORDER.length)|0];
+    correct=isOpen(hi,lo,suited,pos)?"open":"fold"; threeway=false;
+    scene=`あなた: <b>${pos}</b>（最初に参加 ＝ RFI）`;
+  } else {
+    const keys=VSKEYS[tMode]; const key=keys[(Math.random()*keys.length)|0]; const sc=VS[key];
+    correct=classify(hi,lo,suited,sc); threeway=true;
+    scene=`<b>${sc.opener}</b> がオープン → あなた: <b>${sc.hero}</b>`+(sc.hero==="BB"?"（ディフェンス）":"（ポジションあり）");
+  }
+  tState={hi,lo,suited,correct,threeway};
+  $("#tScene").innerHTML=scene;
+  let left=c1,right=c2; if(RVAL[c2[0]]>RVAL[c1[0]]){left=c2;right=c1;}
   $("#tCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
+  renderActions(threeway);
   $("#tFb").innerHTML="";
 }
-function answer(open){
+function answer(act){
   if(!tState) return;
-  const correct=isOpen(tState.hi,tState.lo,tState.suited,tState.pos);
-  const right=(open===correct);
-  sT++; if(right){ sC++; sStreak++; } else sStreak=0;
-  $("#sCorrect").textContent=sC; $("#sTotal").textContent=sT;
-  $("#sRate").textContent=Math.round(sC/sT*100)+"%"; $("#sStreak").textContent=sStreak;
+  const right=(act===tState.correct);
+  sT++; if(right){sC++;sStreak++;} else sStreak=0;
+  $("#sCorrect").textContent=sC;$("#sTotal").textContent=sT;
+  $("#sRate").textContent=Math.round(sC/sT*100)+"%";$("#sStreak").textContent=sStreak;
   const lbl=handLabel(tState.hi,tState.lo,tState.suited);
-  const verb=correct?"オープン":"フォールド";
-  $("#tFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は ${tState.pos} で <b>${verb}</b>
-    <small>${correct?'このレンジに含まれます':'レンジ外。降りるのが標準です'}</small></div>`;
-  setTimeout(newTrain, right?700:1500);
+  let expl;
+  if(tState.correct==="open") expl="このレンジでオープンする手です";
+  else if(tState.correct==="3bet") expl="強い手。再レイズ(3ベット)で主導権とバリューを取ります";
+  else if(tState.correct==="call") expl="レイズには弱いが、コールで参加して得な手（まさに「レイズはダメでもコールは良い手」）";
+  else expl=tState.threeway?"弱すぎるのでフォールド":"レンジ外。降りるのが標準です";
+  $("#tFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <b>${ACTLABEL[tState.correct]}</b><small>${expl}</small></div>`;
+  setTimeout(newTrain, right?750:1700);
 }
-$("#bOpen").onclick=()=>answer(true);
-$("#bFold").onclick=()=>answer(false);
 
 /* ===== レンジ表 ===== */
-function renderChart(pos){
-  const grid=$("#chart"); let html=""; let open=0,total=0;
-  // 行=高ランク降順, 列=低ランク降順。右上=suited, 左下=offsuit, 対角=pair
-  const ord=[...RANKS].reverse(); // A..2
-  for(let i=0;i<13;i++){ for(let j=0;j<13;j++){
-    const r1=RVAL[ord[i]], r2=RVAL[ord[j]];
+function renderChart(raw){
+  const isVs=raw.startsWith("vs:");
+  const key=raw.slice(raw.indexOf(":")+1);
+  const ord=[...RANKS].reverse();
+  let html="",aCnt=0,cCnt=0,total=0;
+  for(let i=0;i<13;i++){for(let j=0;j<13;j++){
+    const r1=RVAL[ord[i]],r2=RVAL[ord[j]];
     let hi,lo,suited,label;
-    if(i===j){ hi=lo=r1; suited=false; label=ord[i]+ord[i]; }
-    else if(i<j){ hi=Math.max(r1,r2); lo=Math.min(r1,r2); suited=true; label=ord[i]+ord[j]+"s"; }
-    else { hi=Math.max(r1,r2); lo=Math.min(r1,r2); suited=false; label=ord[j]+ord[i]+"o"; }
-    const op=isOpen(hi,lo,suited,pos);
-    const combos=(i===j)?6:(suited?4:12);
-    total+=combos; if(op) open+=combos;
-    html+=`<div class="cell ${op?'open':''} ${i===j?'pair':''}">${label}</div>`;
+    if(i===j){hi=lo=r1;suited=false;label=ord[i]+ord[i];}
+    else if(i<j){hi=Math.max(r1,r2);lo=Math.min(r1,r2);suited=true;label=ord[i]+ord[j]+"s";}
+    else {hi=Math.max(r1,r2);lo=Math.min(r1,r2);suited=false;label=ord[j]+ord[i]+"o";}
+    const combos=(i===j)?6:(suited?4:12); total+=combos;
+    let cls="";
+    if(isVs){
+      const a=classify(hi,lo,suited,VS[key]);
+      if(a==="3bet"){cls="c3";aCnt+=combos;} else if(a==="call"){cls="cc";cCnt+=combos;}
+    } else {
+      if(isOpen(hi,lo,suited,key)){cls="open";aCnt+=combos;}
+    }
+    html+=`<div class="cell ${cls} ${i===j?'pair':''}">${label}</div>`;
   }}
-  grid.innerHTML=html;
-  $("#rfiPct").textContent="開く割合: 約"+Math.round(open/total*100)+"%";
+  $("#chart").innerHTML=html;
+  if(isVs){
+    $("#legend").innerHTML=
+      `<span><i class="c3" style="background:var(--gold)"></i>3ベット 約${Math.round(aCnt/total*100)}%</span>`+
+      `<span><i style="background:var(--accent)"></i>コール 約${Math.round(cCnt/total*100)}%</span>`+
+      `<span><i style="background:var(--panel2)"></i>フォールド</span>`;
+  } else {
+    $("#legend").innerHTML=
+      `<span><i style="background:var(--accent)"></i>オープン 約${Math.round(aCnt/total*100)}%</span>`+
+      `<span><i style="background:var(--panel2)"></i>フォールド</span>`;
+  }
 }
 
 /* ===== エクイティ ===== */
-function fillCardSelect(sel, allowEmpty){
+function fillCardSelect(sel,allowEmpty){
   let html=allowEmpty?`<option value="">—</option>`:"";
-  for(const r of RANKS) for(const s of SUITS) html+=`<option value="${r+s}">${r}${SSYM[s]}</option>`;
+  for(const r of RANKS)for(const s of SUITS)html+=`<option value="${r+s}">${r}${SSYM[s]}</option>`;
   sel.innerHTML=html;
 }
 ["h1","h2","v1","v2"].forEach(id=>fillCardSelect($("#"+id),false));
 ["b1","b2","b3","b4","b5"].forEach(id=>fillCardSelect($("#"+id),true));
-$("#h1").selectedIndex=51; $("#h2").selectedIndex=47; // 適当な初期 A,K
-$("#vMode").onchange=()=>{ const sp=$("#vMode").value==="spec"; $("#v1").disabled=!sp; $("#v2").disabled=!sp; };
+$("#h1").value="As"; $("#h2").value="Ks";
+$("#vMode").onchange=()=>{const sp=$("#vMode").value==="spec";$("#v1").disabled=!sp;$("#v2").disabled=!sp;};
 $("#vMode").onchange();
 $("#eqBtn").onclick=()=>{
   const hero=[$("#h1").value,$("#h2").value];
@@ -388,12 +437,11 @@ $("#eqBtn").onclick=()=>{
   const villain=spec?[$("#v1").value,$("#v2").value]:null;
   const board=["b1","b2","b3","b4","b5"].map(id=>$("#"+id).value).filter(Boolean);
   const all=[...hero,...(villain||[]),...board];
-  const set=new Set(all);
-  if(set.size!==all.length){ $("#eqOut").innerHTML=`<div class="note" style="border-color:var(--bad);color:var(--bad)">同じカードが重複しています。修正してください。</div>`; return; }
+  if(new Set(all).size!==all.length){$("#eqOut").innerHTML=`<div class="note" style="border-color:var(--bad);color:var(--bad)">同じカードが重複しています。修正してください。</div>`;return;}
   $("#eqOut").innerHTML=`<div class="eqres"><div class="sub">計算中…</div></div>`;
   setTimeout(()=>{
     const r=equity(hero,villain,board,6000);
-    const w=r.win/r.iters*100, t=r.tie/r.iters*100, l=r.lose/r.iters*100;
+    const w=r.win/r.iters*100,t=r.tie/r.iters*100,l=r.lose/r.iters*100;
     $("#eqOut").innerHTML=`<div class="eqres">
       <div class="big">${r.eq.toFixed(1)}%</div>
       <div class="sub">あなたのエクイティ（勝率＋引分の半分）</div>
@@ -405,16 +453,15 @@ $("#eqBtn").onclick=()=>{
 
 /* ===== ポットオッズ ===== */
 $("#oddsBtn").onclick=()=>{
-  const pot=+$("#potSize").value, bet=+$("#betSize").value, eq=+$("#myEq").value;
-  const need=bet/(pot+bet+bet)*100;           // 必要エクイティ
+  const pot=+$("#potSize").value,bet=+$("#betSize").value,eq=+$("#myEq").value;
+  const need=bet/(pot+bet+bet)*100;
   const call=eq>=need;
-  const evCall=eq/100*(pot+bet)-(1-eq/100)*bet; // 概算EV(コール)
+  const evCall=eq/100*(pot+bet)-(1-eq/100)*bet;
   $("#oddsOut").innerHTML=`<div class="eqres">
     <div class="sub">必要エクイティ（損益分岐）</div>
     <div class="big">${need.toFixed(1)}%</div>
     <div class="sub" style="margin-top:8px;color:${call?'var(--good)':'var(--bad)'};font-weight:700;font-size:1rem;">
-      あなた${eq}% → ${call?'コールが利益（+EV）':'フォールド推奨（−EV）'}
-    </div>
+      あなた${eq}% → ${call?'コールが利益（+EV）':'フォールド推奨（−EV）'}</div>
     <div class="sub" style="margin-top:6px;">コールの概算EV: ${evCall>=0?'+':''}${evCall.toFixed(1)}（1回あたり期待値）</div>
   </div>`;
 };
@@ -424,33 +471,38 @@ let qState=null,qC=0,qT=0;
 function newQuiz(){
   const pot=[40,60,80,100,120,150][(Math.random()*6)|0];
   const bet=Math.round(pot*[0.33,0.5,0.66,0.75,1][(Math.random()*5)|0]);
-  const eq=5+((Math.random()*55)|0); // 5-60%
+  const eq=5+((Math.random()*55)|0);
   const need=bet/(pot+bet+bet)*100;
   qState={pot,bet,eq,call:eq>=need,need};
   $("#quizBox").innerHTML=`
-    <div class="note" style="font-size:.86rem;color:var(--txt);">
-      ポット <b>${pot}</b>／相手ベット <b>${bet}</b>／あなたのエクイティ <b>${eq}%</b><br>コールする？
-    </div>
+    <div class="note" style="font-size:.86rem;color:var(--txt);">ポット <b>${pot}</b>／相手ベット <b>${bet}</b>／あなたのエクイティ <b>${eq}%</b><br>コールする？</div>
     <div class="actions" style="margin-top:10px;">
       <button class="btn big" id="qCall">コール</button>
       <button class="btn big fold" id="qFold">フォールド</button>
-    </div>
-    <div id="qFb"></div>`;
-  $("#qCall").onclick=()=>qAns(true); $("#qFold").onclick=()=>qAns(false);
+    </div><div id="qFb"></div>`;
+  $("#qCall").onclick=()=>qAns(true);$("#qFold").onclick=()=>qAns(false);
 }
 function qAns(call){
-  qT++; const right=(call===qState.call); if(right) qC++;
-  $("#qCorrect").textContent=qC; $("#qTotal").textContent=qT; $("#qRate").textContent=Math.round(qC/qT*100)+"%";
-  $("#qFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：必要エクイティ ${qState.need.toFixed(1)}% に対し ${qState.eq}%
-    <small>${qState.call?'上回るのでコールが+EV':'下回るのでフォールドが正解'}</small></div>`;
+  qT++;const right=(call===qState.call);if(right)qC++;
+  $("#qCorrect").textContent=qC;$("#qTotal").textContent=qT;$("#qRate").textContent=Math.round(qC/qT*100)+"%";
+  $("#qFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：必要エクイティ ${qState.need.toFixed(1)}% に対し ${qState.eq}%<small>${qState.call?'上回るのでコールが+EV':'下回るのでフォールドが正解'}</small></div>`;
   setTimeout(newQuiz, right?900:1700);
 }
 
 /* ===== init ===== */
-$("#chartPos").innerHTML=POSORDER.map(p=>`<option value="${p}">${p}</option>`).join("");
-$("#chartPos").value="BTN";
+$("#chartPos").innerHTML=`
+  <optgroup label="RFI（最初に参加）">${POSORDER.map(p=>`<option value="rfi:${p}">${p}</option>`).join("")}</optgroup>
+  <optgroup label="vsオープン（BTNで対応）">
+    <option value="vs:BTNvUTG">BTN vs UTG</option><option value="vs:BTNvHJ">BTN vs HJ</option><option value="vs:BTNvCO">BTN vs CO</option>
+  </optgroup>
+  <optgroup label="BBディフェンス">
+    <option value="vs:BBvUTG">BB vs UTG</option><option value="vs:BBvHJ">BB vs HJ</option><option value="vs:BBvCO">BB vs CO</option>
+    <option value="vs:BBvBTN">BB vs BTN</option><option value="vs:BBvSB">BB vs SB</option>
+  </optgroup>`;
+$("#chartPos").value="vs:BBvBTN";
 $("#chartPos").onchange=()=>renderChart($("#chartPos").value);
-renderChart("BTN");
+renderChart("vs:BBvBTN");
+$("#modeNote").innerHTML=MODENOTE.rfi;
 newTrain();
 newQuiz();
 </script>
