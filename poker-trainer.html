@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLHE キャッシュゲーム基礎トレーナー｜プリフロップ・エクイティ・ポットオッズ</title>
+<meta name="description" content="テキサスホールデム(NLHE)で勝つための基礎反復トレーナー。プリフロップのレンジ判断、エクイティ計算、ポットオッズ/EV判断をブラウザだけで練習できる無料ツール。">
+<style>
+:root{
+  --bg:#0b1410; --panel:#10201a; --panel2:#15291f; --line:#244234;
+  --txt:#e7f0ea; --sub:#8fb2a0; --accent:#2fae6b; --accent2:#4de39a; --gold:#ffd24d;
+  --red:#ff5d6c; --bad:#ff5d6c; --good:#4de39a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+  line-height:1.6;word-break:break-word;overflow-wrap:anywhere;}
+.wrap{max-width:880px;margin:0 auto;padding:14px 13px 60px;}
+header{text-align:center;padding:12px 0 4px;}
+h1{font-size:1.25rem;margin:0 0 6px;letter-spacing:.01em;}
+h1 .c{color:var(--accent2);}
+.lead{color:var(--sub);font-size:.84rem;margin:0 auto;max-width:600px;}
+.tabs{display:flex;gap:6px;margin:16px 0 14px;flex-wrap:wrap;}
+.tab{flex:1 1 auto;min-width:100px;text-align:center;padding:10px 6px;border:1px solid var(--line);
+  background:var(--panel);color:var(--sub);border-radius:10px;cursor:pointer;font-size:.82rem;font-weight:600;transition:.15s;user-select:none;}
+.tab.on{background:linear-gradient(135deg,var(--accent),#1f8a52);color:#fff;border-color:transparent;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 14px;margin-bottom:16px;}
+.panel h2{font-size:1.0rem;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+.panel h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);display:inline-block;}
+.hide{display:none;}
+.btn{background:linear-gradient(135deg,var(--accent),#1f8a52);color:#fff;border:none;border-radius:9px;
+  padding:11px 16px;font-size:.9rem;font-weight:700;cursor:pointer;}
+.btn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--sub);}
+.btn.big{font-size:1.05rem;padding:14px 20px;flex:1;}
+.btn.fold{background:linear-gradient(135deg,#c0392b,#922b21);}
+select,input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+  border-radius:8px;padding:9px 8px;font-size:.92rem;width:100%;}
+label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;gap:4px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+
+/* ---- trainer ---- */
+.tcard{text-align:center;padding:10px 0 4px;}
+.pos{font-size:.82rem;color:var(--sub);margin-bottom:6px;}
+.pos b{color:var(--gold);font-size:1.0rem;}
+.cards{display:flex;justify-content:center;gap:10px;margin:6px 0 14px;}
+.pcard{width:74px;height:104px;background:#fff;border-radius:10px;position:relative;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  box-shadow:0 6px 18px rgba(0,0,0,.4);}
+.pcard .rk{font-size:2.1rem;font-weight:800;line-height:1;}
+.pcard .st{font-size:1.5rem;line-height:1;}
+.pcard.red{color:#d6273e;} .pcard.blk{color:#15201a;}
+.actions{display:flex;gap:10px;margin-top:6px;}
+.fb{margin-top:14px;border-radius:10px;padding:12px;font-size:.9rem;text-align:center;font-weight:600;}
+.fb.ok{background:rgba(77,227,154,.12);border:1px solid var(--good);color:var(--good);}
+.fb.ng{background:rgba(255,93,108,.12);border:1px solid var(--bad);color:var(--bad);}
+.fb small{display:block;color:var(--sub);font-weight:400;margin-top:4px;}
+.stats{display:flex;gap:8px;margin-top:14px;}
+.stats .b{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center;}
+.stats .b .n{font-size:1.3rem;font-weight:800;color:var(--gold);}
+.stats .b .l{font-size:.68rem;color:var(--sub);}
+
+/* ---- range chart ---- */
+.chart{display:grid;grid-template-columns:repeat(13,1fr);gap:2px;margin-top:6px;}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:700;
+  border-radius:3px;background:var(--panel2);color:var(--sub);}
+.cell.open{background:var(--accent);color:#06150d;}
+.cell.pair{outline:1px solid var(--gold);}
+.legend{display:flex;gap:14px;font-size:.74rem;color:var(--sub);margin-top:10px;align-items:center;flex-wrap:wrap;}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:4px;}
+
+/* ---- equity / cards select ---- */
+.cardsel{display:flex;gap:6px;flex-wrap:wrap;}
+.cardsel select{width:auto;min-width:64px;flex:1 1 64px;}
+.eqres{background:linear-gradient(135deg,#10261b,#10201a);border:1px solid var(--accent);border-radius:12px;padding:14px;margin-top:12px;}
+.eqres .big{font-size:2rem;font-weight:800;color:var(--accent2);text-align:center;}
+.eqres .sub{text-align:center;color:var(--sub);font-size:.82rem;}
+.bar{height:14px;border-radius:7px;background:#3a1f22;overflow:hidden;margin:10px 0;display:flex;}
+.bar .w{background:var(--good);} .bar .t{background:var(--gold);}
+
+.note{font-size:.76rem;color:var(--sub);background:var(--panel2);border-left:3px solid var(--accent2);
+  border-radius:0 8px 8px 0;padding:9px 11px;margin-top:12px;}
+footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-height:1.8;}
+@media(max-width:480px){
+  h1{font-size:1.08rem;} .pcard{width:62px;height:88px;} .pcard .rk{font-size:1.7rem;} .pcard .st{font-size:1.2rem;}
+  .tab{min-width:80px;font-size:.76rem;} .cell{font-size:.42rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>NLHE <span class="c">基礎トレーナー</span></h1>
+  <p class="lead">テキサスホールデムのキャッシュで勝つための土台を反復で固める。プリフロップ判断・エクイティ・ポットオッズの3本柱。ブラウザだけ・オフライン可。</p>
+</header>
+
+<div class="tabs">
+  <div class="tab on" data-tab="train">レンジ特訓</div>
+  <div class="tab" data-tab="chart">レンジ表</div>
+  <div class="tab" data-tab="equity">エクイティ計算</div>
+  <div class="tab" data-tab="odds">ポットオッズ/EV</div>
+</div>
+
+<!-- ===== TRAIN ===== -->
+<section id="tab-train">
+  <div class="panel">
+    <h2><span class="dot"></span>プリフロップ レンジ特訓</h2>
+    <div class="tcard">
+      <div class="pos">ポジション：<b id="tPos">BTN</b>（6-max・最初に動く＝RFI）</div>
+      <div class="cards" id="tCards"></div>
+      <div class="actions">
+        <button class="btn big" id="bOpen">オープン<br><small style="font-weight:400">(レイズ)</small></button>
+        <button class="btn big fold" id="bFold">フォールド<br><small style="font-weight:400">(降りる)</small></button>
+      </div>
+      <div id="tFb"></div>
+      <div class="stats">
+        <div class="b"><div class="n" id="sCorrect">0</div><div class="l">正解</div></div>
+        <div class="b"><div class="n" id="sTotal">0</div><div class="l">出題</div></div>
+        <div class="b"><div class="n" id="sRate">-</div><div class="l">正答率</div></div>
+        <div class="b"><div class="n" id="sStreak">0</div><div class="l">連続正解</div></div>
+      </div>
+    </div>
+    <div class="note">標準的な6-maxのRFI（最初にレイズで参加する手）レンジで判定します。<b>厳密GTOではなく実戦的な目安</b>。迷ったら「レンジ表」タブで全体像を確認しましょう。間違えた手＝あなたの穴です。</div>
+  </div>
+</section>
+
+<!-- ===== CHART ===== -->
+<section id="tab-chart" class="hide">
+  <div class="panel">
+    <h2><span class="dot"></span>RFIレンジ表</h2>
+    <label class="fld" style="max-width:220px;margin-bottom:10px;">ポジション
+      <select id="chartPos"></select>
+    </label>
+    <div class="chart" id="chart"></div>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>オープンする手</span>
+      <span><i style="background:var(--panel2)"></i>降りる手</span>
+      <span><i style="outline:1px solid var(--gold);background:transparent"></i>ペア(対角)</span>
+      <span id="rfiPct" style="color:var(--gold)"></span>
+    </div>
+    <div class="note">表の上半分（右上）がスーテッド、下半分（左下）がオフスート、対角がポケットペア。後ろのポジションほどレンジが広がります。</div>
+  </div>
+</section>
+
+<!-- ===== EQUITY ===== -->
+<section id="tab-equity" class="hide">
+  <div class="panel">
+    <h2><span class="dot"></span>エクイティ計算機（モンテカルロ）</h2>
+    <label class="fld">あなたのハンド</label>
+    <div class="cardsel" style="margin:4px 0 12px;">
+      <select id="h1"></select><select id="h2"></select>
+    </div>
+    <label class="fld">相手</label>
+    <div class="row" style="margin:4px 0 12px;">
+      <label class="fld" style="flex:0 1 150px;">相手の指定
+        <select id="vMode"><option value="rand">ランダム(任意の手)</option><option value="spec">特定ハンド</option></select>
+      </label>
+      <div class="cardsel" style="flex:1;">
+        <select id="v1"></select><select id="v2"></select>
+      </div>
+    </div>
+    <label class="fld">ボード（任意・空欄でプリフロップ）</label>
+    <div class="cardsel" style="margin:4px 0 12px;">
+      <select id="b1"></select><select id="b2"></select><select id="b3"></select><select id="b4"></select><select id="b5"></select>
+    </div>
+    <button class="btn" id="eqBtn">エクイティを計算</button>
+    <div id="eqOut"></div>
+    <div class="note">指定したカード以外の残りデッキからボード/相手手をランダムに数千回配って勝率を算出します。相手「ランダム」での結果＝そのハンドの素の強さの目安です。</div>
+  </div>
+</section>
+
+<!-- ===== ODDS ===== -->
+<section id="tab-odds" class="hide">
+  <div class="panel">
+    <h2><span class="dot"></span>ポットオッズ計算機</h2>
+    <div class="row">
+      <label class="fld" style="flex:1;">現在のポット
+        <input type="number" id="potSize" value="100" min="0">
+      </label>
+      <label class="fld" style="flex:1;">相手のベット(コール額)
+        <input type="number" id="betSize" value="50" min="0">
+      </label>
+      <label class="fld" style="flex:1;">あなたのエクイティ%
+        <input type="number" id="myEq" value="35" min="0" max="100">
+      </label>
+    </div>
+    <button class="btn" id="oddsBtn" style="margin-top:12px;">判定する</button>
+    <div id="oddsOut"></div>
+    <div class="note">必要エクイティ ＝ コール額 ÷ (ポット＋コール額＋自分のコール)。あなたのエクイティがこれを上回ればコールが利益（+EV）です。エクイティは上の計算機で出せます。</div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span>EV判断クイズ</h2>
+    <p class="lead" style="text-align:left;margin-bottom:10px;">ランダムな状況でコール/フォールドを即断する反復ドリル。ポットオッズとエクイティを瞬時に比べる力がつきます。</p>
+    <div id="quizBox"></div>
+    <div class="stats" style="margin-top:12px;">
+      <div class="b"><div class="n" id="qCorrect">0</div><div class="l">正解</div></div>
+      <div class="b"><div class="n" id="qTotal">0</div><div class="l">出題</div></div>
+      <div class="b"><div class="n" id="qRate">-</div><div class="l">正答率</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  NLHEキャッシュゲーム基礎トレーナー（個人練習用）｜役判定はクライアント内モンテカルロ<br>
+  レンジは標準的な目安です。厳密なGTOはソルバー(GTO Wizard等)と併用してください。
+</footer>
+</div>
+
+<script>
+/* ===== カード基盤 ===== */
+const RANKS=["2","3","4","5","6","7","8","9","T","J","Q","K","A"];
+const RVAL={ "2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"T":10,"J":11,"Q":12,"K":13,"A":14 };
+const SUITS=["s","h","d","c"];
+const SSYM={s:"♠",h:"♥",d:"♦",c:"♣"};
+const SRED={h:1,d:1};
+const $=s=>document.querySelector(s);
+
+function fullDeck(){ const d=[]; for(const r of RANKS) for(const s of SUITS) d.push(r+s); return d; }
+function cardObj(c){ return {r:RVAL[c[0]], s:c[1]}; }
+
+/* ===== 役評価（5枚→スコア配列） ===== */
+function rank5(cs){ // cs: [{r,s}*5]
+  const rs=cs.map(c=>c.r).sort((a,b)=>b-a);
+  const flush=cs.every(c=>c.s===cs[0].s);
+  const cnt={}; rs.forEach(r=>cnt[r]=(cnt[r]||0)+1);
+  const uniq=[...new Set(rs)];
+  let straight=false, top=0;
+  if(uniq.length===5){
+    if(uniq[0]-uniq[4]===4){ straight=true; top=uniq[0]; }
+    else if(uniq[0]===14&&uniq[1]===5&&uniq[2]===4&&uniq[3]===3&&uniq[4]===2){ straight=true; top=5; }
+  }
+  const groups=Object.entries(cnt).map(([r,c])=>[c,+r]).sort((a,b)=> b[0]-a[0]||b[1]-a[1]);
+  const counts=groups.map(g=>g[0]), kick=groups.map(g=>g[1]);
+  if(straight&&flush) return [8,top];
+  if(counts[0]===4) return [7,kick[0],kick[1]];
+  if(counts[0]===3&&counts[1]===2) return [6,kick[0],kick[1]];
+  if(flush) return [5,...rs];
+  if(straight) return [4,top];
+  if(counts[0]===3) return [3,kick[0],kick[1],kick[2]];
+  if(counts[0]===2&&counts[1]===2) return [2,kick[0],kick[1],kick[2]];
+  if(counts[0]===2) return [1,kick[0],kick[1],kick[2],kick[3]];
+  return [0,...rs];
+}
+function cmp(a,b){ const n=Math.max(a.length,b.length); for(let i=0;i<n;i++){ const x=a[i]||0,y=b[i]||0; if(x!==y) return x-y; } return 0; }
+function best7(cards){ // 7 {r,s}
+  let best=null;
+  for(let i=0;i<7;i++) for(let j=i+1;j<7;j++){
+    const five=[]; for(let k=0;k<7;k++){ if(k!==i&&k!==j) five.push(cards[k]); }
+    const s=rank5(five);
+    if(!best||cmp(s,best)>0) best=s;
+  }
+  return best;
+}
+
+/* ===== モンテカルロ ===== */
+function sampleN(deck, n, used){ // pick n distinct not in used set; returns array, mutates a copy
+  const pool=deck.filter(c=>!used.has(c));
+  for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  return pool.slice(0,n);
+}
+function equity(hero, villain, board, iters){
+  // hero:[c,c] strings; villain:[c,c]|null; board:[...] strings
+  const deck=fullDeck();
+  let win=0,tie=0,lose=0;
+  for(let it=0; it<iters; it++){
+    const used=new Set([...hero, ...(villain||[]), ...board]);
+    const needBoard=5-board.length;
+    const needVill=villain?0:2;
+    const draw=sampleN(deck, needBoard+needVill, used);
+    const fullBoard=[...board, ...draw.slice(0,needBoard)].map(cardObj);
+    const vh=(villain?villain:draw.slice(needBoard)).map(cardObj);
+    const hs=best7([...hero.map(cardObj), ...fullBoard]);
+    const vs=best7([...vh, ...fullBoard]);
+    const c=cmp(hs,vs);
+    if(c>0) win++; else if(c<0) lose++; else tie++;
+  }
+  return {win,tie,lose,iters,eq:(win+tie/2)/iters*100};
+}
+
+/* ===== プリフロップ レンジ（6-max RFI 目安） ===== */
+// 各ポジション: pair最小, suited{高ランク:最低キッカー}, offsuit{高ランク:最低キッカー}
+const RANGES={
+  UTG:{pair:2, s:{A:2,K:10,Q:10,J:10,T:9,9:8,8:7,7:6,6:5,5:4}, o:{A:11,K:12}},
+  HJ: {pair:2, s:{A:2,K:9,Q:9,J:9,T:8,9:7,8:6,7:6,6:5,5:4}, o:{A:10,K:11,Q:12}},
+  CO: {pair:2, s:{A:2,K:6,Q:8,J:8,T:7,9:6,8:5,7:5,6:4,5:4,4:3}, o:{A:8,K:10,Q:10,J:10}},
+  BTN:{pair:2, s:{A:2,K:2,Q:4,J:6,T:6,9:5,8:4,7:4,6:3,5:3,4:2,3:2}, o:{A:2,K:7,Q:9,J:9,T:9,9:8}},
+  SB: {pair:2, s:{A:2,K:5,Q:6,J:7,T:7,9:6,8:5,7:5,6:4,5:4,4:3}, o:{A:5,K:9,Q:9,J:9,T:9}},
+};
+const POSORDER=["UTG","HJ","CO","BTN","SB"];
+// hand: hi,lo (rank values, hi>=lo), suited bool
+function isOpen(hi,lo,suited,pos){
+  const R=RANGES[pos];
+  if(hi===lo) return hi>=R.pair;                 // ペア
+  const hk=RANKS[hi-2];                            // 高ランク文字
+  const tbl=suited?R.s:R.o;
+  const min=tbl[hk];
+  return (min!==undefined)&&(lo>=min);
+}
+function handLabel(hi,lo,suited){
+  if(hi===lo) return RANKS[hi-2]+RANKS[hi-2];
+  return RANKS[hi-2]+RANKS[lo-2]+(suited?"s":"o");
+}
+
+/* ===== タブ ===== */
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    t.classList.add("on");
+    ["train","chart","equity","odds"].forEach(id=>$("#tab-"+id).classList.add("hide"));
+    $("#tab-"+t.dataset.tab).classList.remove("hide");
+  };
+});
+
+/* ===== レンジ特訓 ===== */
+let tState=null, sC=0,sT=0,sStreak=0;
+function pcardHTML(rank,suit){
+  const red=SRED[suit]?"red":"blk";
+  return `<div class="pcard ${red}"><div class="rk">${rank}</div><div class="st">${SSYM[suit]}</div></div>`;
+}
+function newTrain(){
+  // ランダムにポジション
+  const pos=POSORDER[(Math.random()*POSORDER.length)|0];
+  // コンボ重み付きでハンド生成（実際のカード2枚から）
+  const deck=fullDeck();
+  for(let i=deck.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [deck[i],deck[j]]=[deck[j],deck[i]]; }
+  const c1=deck[0], c2=deck[1];
+  let hi=RVAL[c1[0]], lo=RVAL[c2[0]];
+  const suited=c1[1]===c2[1];
+  if(lo>hi){ [hi,lo]=[lo,hi]; }
+  tState={pos,hi,lo,suited,c1,c2};
+  $("#tPos").textContent=pos;
+  // 高い方を左に表示
+  let left=c1,right=c2;
+  if(RVAL[c2[0]]>RVAL[c1[0]]){ left=c2; right=c1; }
+  $("#tCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
+  $("#tFb").innerHTML="";
+}
+function answer(open){
+  if(!tState) return;
+  const correct=isOpen(tState.hi,tState.lo,tState.suited,tState.pos);
+  const right=(open===correct);
+  sT++; if(right){ sC++; sStreak++; } else sStreak=0;
+  $("#sCorrect").textContent=sC; $("#sTotal").textContent=sT;
+  $("#sRate").textContent=Math.round(sC/sT*100)+"%"; $("#sStreak").textContent=sStreak;
+  const lbl=handLabel(tState.hi,tState.lo,tState.suited);
+  const verb=correct?"オープン":"フォールド";
+  $("#tFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は ${tState.pos} で <b>${verb}</b>
+    <small>${correct?'このレンジに含まれます':'レンジ外。降りるのが標準です'}</small></div>`;
+  setTimeout(newTrain, right?700:1500);
+}
+$("#bOpen").onclick=()=>answer(true);
+$("#bFold").onclick=()=>answer(false);
+
+/* ===== レンジ表 ===== */
+function renderChart(pos){
+  const grid=$("#chart"); let html=""; let open=0,total=0;
+  // 行=高ランク降順, 列=低ランク降順。右上=suited, 左下=offsuit, 対角=pair
+  const ord=[...RANKS].reverse(); // A..2
+  for(let i=0;i<13;i++){ for(let j=0;j<13;j++){
+    const r1=RVAL[ord[i]], r2=RVAL[ord[j]];
+    let hi,lo,suited,label;
+    if(i===j){ hi=lo=r1; suited=false; label=ord[i]+ord[i]; }
+    else if(i<j){ hi=Math.max(r1,r2); lo=Math.min(r1,r2); suited=true; label=ord[i]+ord[j]+"s"; }
+    else { hi=Math.max(r1,r2); lo=Math.min(r1,r2); suited=false; label=ord[j]+ord[i]+"o"; }
+    const op=isOpen(hi,lo,suited,pos);
+    const combos=(i===j)?6:(suited?4:12);
+    total+=combos; if(op) open+=combos;
+    html+=`<div class="cell ${op?'open':''} ${i===j?'pair':''}">${label}</div>`;
+  }}
+  grid.innerHTML=html;
+  $("#rfiPct").textContent="開く割合: 約"+Math.round(open/total*100)+"%";
+}
+
+/* ===== エクイティ ===== */
+function fillCardSelect(sel, allowEmpty){
+  let html=allowEmpty?`<option value="">—</option>`:"";
+  for(const r of RANKS) for(const s of SUITS) html+=`<option value="${r+s}">${r}${SSYM[s]}</option>`;
+  sel.innerHTML=html;
+}
+["h1","h2","v1","v2"].forEach(id=>fillCardSelect($("#"+id),false));
+["b1","b2","b3","b4","b5"].forEach(id=>fillCardSelect($("#"+id),true));
+$("#h1").selectedIndex=51; $("#h2").selectedIndex=47; // 適当な初期 A,K
+$("#vMode").onchange=()=>{ const sp=$("#vMode").value==="spec"; $("#v1").disabled=!sp; $("#v2").disabled=!sp; };
+$("#vMode").onchange();
+$("#eqBtn").onclick=()=>{
+  const hero=[$("#h1").value,$("#h2").value];
+  const spec=$("#vMode").value==="spec";
+  const villain=spec?[$("#v1").value,$("#v2").value]:null;
+  const board=["b1","b2","b3","b4","b5"].map(id=>$("#"+id).value).filter(Boolean);
+  const all=[...hero,...(villain||[]),...board];
+  const set=new Set(all);
+  if(set.size!==all.length){ $("#eqOut").innerHTML=`<div class="note" style="border-color:var(--bad);color:var(--bad)">同じカードが重複しています。修正してください。</div>`; return; }
+  $("#eqOut").innerHTML=`<div class="eqres"><div class="sub">計算中…</div></div>`;
+  setTimeout(()=>{
+    const r=equity(hero,villain,board,6000);
+    const w=r.win/r.iters*100, t=r.tie/r.iters*100, l=r.lose/r.iters*100;
+    $("#eqOut").innerHTML=`<div class="eqres">
+      <div class="big">${r.eq.toFixed(1)}%</div>
+      <div class="sub">あなたのエクイティ（勝率＋引分の半分）</div>
+      <div class="bar"><div class="w" style="width:${w}%"></div><div class="t" style="width:${t}%"></div></div>
+      <div class="sub">勝ち ${w.toFixed(1)}%　引分 ${t.toFixed(1)}%　負け ${l.toFixed(1)}%　(${r.iters}回試行)</div>
+    </div>`;
+  },30);
+};
+
+/* ===== ポットオッズ ===== */
+$("#oddsBtn").onclick=()=>{
+  const pot=+$("#potSize").value, bet=+$("#betSize").value, eq=+$("#myEq").value;
+  const need=bet/(pot+bet+bet)*100;           // 必要エクイティ
+  const call=eq>=need;
+  const evCall=eq/100*(pot+bet)-(1-eq/100)*bet; // 概算EV(コール)
+  $("#oddsOut").innerHTML=`<div class="eqres">
+    <div class="sub">必要エクイティ（損益分岐）</div>
+    <div class="big">${need.toFixed(1)}%</div>
+    <div class="sub" style="margin-top:8px;color:${call?'var(--good)':'var(--bad)'};font-weight:700;font-size:1rem;">
+      あなた${eq}% → ${call?'コールが利益（+EV）':'フォールド推奨（−EV）'}
+    </div>
+    <div class="sub" style="margin-top:6px;">コールの概算EV: ${evCall>=0?'+':''}${evCall.toFixed(1)}（1回あたり期待値）</div>
+  </div>`;
+};
+
+/* ===== EVクイズ ===== */
+let qState=null,qC=0,qT=0;
+function newQuiz(){
+  const pot=[40,60,80,100,120,150][(Math.random()*6)|0];
+  const bet=Math.round(pot*[0.33,0.5,0.66,0.75,1][(Math.random()*5)|0]);
+  const eq=5+((Math.random()*55)|0); // 5-60%
+  const need=bet/(pot+bet+bet)*100;
+  qState={pot,bet,eq,call:eq>=need,need};
+  $("#quizBox").innerHTML=`
+    <div class="note" style="font-size:.86rem;color:var(--txt);">
+      ポット <b>${pot}</b>／相手ベット <b>${bet}</b>／あなたのエクイティ <b>${eq}%</b><br>コールする？
+    </div>
+    <div class="actions" style="margin-top:10px;">
+      <button class="btn big" id="qCall">コール</button>
+      <button class="btn big fold" id="qFold">フォールド</button>
+    </div>
+    <div id="qFb"></div>`;
+  $("#qCall").onclick=()=>qAns(true); $("#qFold").onclick=()=>qAns(false);
+}
+function qAns(call){
+  qT++; const right=(call===qState.call); if(right) qC++;
+  $("#qCorrect").textContent=qC; $("#qTotal").textContent=qT; $("#qRate").textContent=Math.round(qC/qT*100)+"%";
+  $("#qFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：必要エクイティ ${qState.need.toFixed(1)}% に対し ${qState.eq}%
+    <small>${qState.call?'上回るのでコールが+EV':'下回るのでフォールドが正解'}</small></div>`;
+  setTimeout(newQuiz, right?900:1700);
+}
+
+/* ===== init ===== */
+$("#chartPos").innerHTML=POSORDER.map(p=>`<option value="${p}">${p}</option>`).join("");
+$("#chartPos").value="BTN";
+$("#chartPos").onchange=()=>renderChart($("#chartPos").value);
+renderChart("BTN");
+newTrain();
+newQuiz();
+</script>
+</body>
+</html>
