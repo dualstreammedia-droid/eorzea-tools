@@ -224,12 +224,25 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   </div>
 
   <div class="panel">
-    <h2><span class="dot"></span>判定ドリル</h2>
-    <label class="fld" style="max-width:300px;">状況を選ぶ
-      <select id="ysScene"></select>
-    </label>
-    <button class="btn" id="ysDeal" style="margin-top:10px;">ランダムな手で判定</button>
-    <div class="ydrill" id="ysOut"><div class="empty" style="color:var(--sub);text-align:center;">「ランダムな手で判定」を押すと、ティア式での推奨アクションが出ます</div></div>
+    <h2><span class="dot"></span>ティア式トレーニング</h2>
+    <div class="modesel">
+      <div class="mbtn on" data-ym="rfi">RFI<small>最初に参加</small></div>
+      <div class="mbtn" data-ym="vsopen">vsオープン<small>BTNで対応</small></div>
+      <div class="mbtn" data-ym="bb">BBディフェンス<small>BBで受ける</small></div>
+    </div>
+    <div class="tcard">
+      <div class="pos" id="ysSceneTxt"></div>
+      <div class="cards" id="ysCards"></div>
+      <div class="actions" id="ysActions"></div>
+      <div id="ysFb"></div>
+      <div class="stats">
+        <div class="b"><div class="n" id="ysC">0</div><div class="l">正解</div></div>
+        <div class="b"><div class="n" id="ysT">0</div><div class="l">出題</div></div>
+        <div class="b"><div class="n" id="ysR">-</div><div class="l">正答率</div></div>
+        <div class="b"><div class="n" id="ysS">0</div><div class="l">連続正解</div></div>
+      </div>
+    </div>
+    <div class="note">ティア式（カラーランク）のロジックで判定します。間違えるとそのハンドのティアと正解が出るので、色ランクが体に入ります。</div>
   </div>
 
   <div class="panel">
@@ -591,29 +604,52 @@ const YS_ACTCOLOR={open:"#2e8b57","3bet":"#e08a1e",call:"#3a7bd5",fold:"#c0392b"
 $("#yrankBody").innerHTML=YS_NAMES.map((n,i)=>
   `<tr><td><span class="sw" style="background:${YS_COLOR[i]}"></span> ${n.split("(")[0]}</td><td>${n.match(/\((.+)\)/)[1]}</td><td>${YS_OPENPOS[i]}</td></tr>`
 ).join("");
-// シナリオ選択
-$("#ysScene").innerHTML=`
-  <optgroup label="オープン(RFI)">${POSORDER.map(p=>`<option value="rfi:${p}">${p} でオープン</option>`).join("")}</optgroup>
-  <optgroup label="vsオープン(BTNで対応)">
-    <option value="vs:UTG">UTGのレイズに対応</option><option value="vs:HJ">HJのレイズに対応</option><option value="vs:CO">COのレイズに対応</option>
-  </optgroup>
-  <optgroup label="BBディフェンス">
-    <option value="bb:UTG">BB vs UTG</option><option value="bb:HJ">BB vs HJ</option><option value="bb:CO">BB vs CO</option>
-    <option value="bb:BTN">BB vs BTN</option><option value="bb:SB">BB vs SB</option>
-  </optgroup>`;
-$("#ysDeal").onclick=()=>{
+// ティア式トレーニング（採点式）
+let ysMode="rfi", ysState=null, ysCo=0, ysTo=0, ysStreak=0;
+const YSKEYS={vsopen:["UTG","HJ","CO"], bb:["UTG","HJ","CO","BTN","SB"]};
+document.querySelectorAll('[data-ym]').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('[data-ym]').forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); ysMode=b.dataset.ym; ysNew();
+  };
+});
+function ysRenderActions(threeway){
+  const a=$("#ysActions");
+  a.innerHTML = threeway
+    ? `<button class="btn big" data-act="3bet">3ベット<br><small>再レイズ</small></button>
+       <button class="btn big call" data-act="call">コール<br><small>付き合う</small></button>
+       <button class="btn big fold" data-act="fold">フォールド<br><small>降りる</small></button>`
+    : `<button class="btn big" data-act="open">オープン<br><small>レイズ</small></button>
+       <button class="btn big fold" data-act="fold">フォールド<br><small>降りる</small></button>`;
+  a.querySelectorAll("button").forEach(btn=>btn.onclick=()=>ysAnswer(btn.dataset.act));
+}
+function ysNew(){
   const deck=fullDeck();
   for(let i=deck.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[deck[i],deck[j]]=[deck[j],deck[i]];}
-  let hi=RVAL[deck[0][0]],lo=RVAL[deck[1][0]];const suited=deck[0][1]===deck[1][1];if(lo>hi)[hi,lo]=[lo,hi];
-  const [kind,pos]=$("#ysScene").value.split(":");
-  const t=ysTier(hi,lo,suited), act=ysAction(hi,lo,suited,kind,pos), lbl=handLabel(hi,lo,suited);
-  const sceneTxt = kind==="rfi"?`${pos} でオープン`: kind==="vs"?`${pos}のレイズに対応(BTN)`:`BB vs ${pos}`;
-  $("#ysOut").innerHTML=`
-    <div style="text-align:center;font-size:1.6rem;font-weight:800;margin-bottom:6px;">${lbl}</div>
-    <div style="text-align:center;margin-bottom:10px;"><span class="ytag" style="background:${YS_COLOR[t]};color:#fff;">${YS_NAMES[t]}</span></div>
-    <div style="text-align:center;color:var(--sub);font-size:.82rem;margin-bottom:8px;">${sceneTxt}</div>
-    <div style="text-align:center;font-size:1.2rem;font-weight:800;color:${YS_ACTCOLOR[act]};">→ ${ACTLABEL[act]||act}</div>`;
-};
+  const c1=deck[0],c2=deck[1];let hi=RVAL[c1[0]],lo=RVAL[c2[0]];const suited=c1[1]===c2[1];if(lo>hi)[hi,lo]=[lo,hi];
+  let kind,pos,scene,threeway;
+  if(ysMode==="rfi"){ pos=POSORDER[(Math.random()*POSORDER.length)|0]; kind="rfi"; threeway=false;
+    scene=`あなた: <b>${pos}</b>（最初に参加 ＝ RFI）`; }
+  else { const keys=YSKEYS[ysMode]; pos=keys[(Math.random()*keys.length)|0]; kind=(ysMode==="vsopen")?"vs":"bb"; threeway=true;
+    scene=(ysMode==="vsopen")?`<b>${pos}</b> がオープン → あなた: <b>BTN</b>`:`<b>${pos}</b> がオープン → あなた: <b>BB</b>`; }
+  const correct=ysAction(hi,lo,suited,kind,pos);
+  ysState={hi,lo,suited,correct,threeway};
+  $("#ysSceneTxt").innerHTML=scene;
+  let left=c1,right=c2;if(RVAL[c2[0]]>RVAL[c1[0]]){left=c2;right=c1;}
+  $("#ysCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
+  ysRenderActions(threeway); $("#ysFb").innerHTML="";
+}
+function ysAnswer(act){
+  if(!ysState) return;
+  const right=(act===ysState.correct);
+  ysTo++; if(right){ysCo++;ysStreak++;} else ysStreak=0;
+  $("#ysC").textContent=ysCo;$("#ysT").textContent=ysTo;$("#ysR").textContent=Math.round(ysCo/ysTo*100)+"%";$("#ysS").textContent=ysStreak;
+  const lbl=handLabel(ysState.hi,ysState.lo,ysState.suited);
+  const t=ysTier(ysState.hi,ysState.lo,ysState.suited);
+  $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${YS_COLOR[t]};color:#fff;font-size:.72rem;">${YS_NAMES[t]}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b></div>`;
+  setTimeout(ysNew, right?750:1700);
+}
+ysNew();
 // ティア色表
 (function renderYsChart(){
   const ord=[...RANKS].reverse(); let html="";
