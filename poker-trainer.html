@@ -77,6 +77,16 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .cell.pair{outline:1px solid #fff6;}
 .legend{display:flex;gap:14px;font-size:.74rem;color:var(--sub);margin-top:10px;align-items:center;flex-wrap:wrap;}
 .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:4px;}
+/* yokosawa tiers */
+.cell.ys1{background:#1a2a5e;color:#fff} .cell.ys2{background:#c0392b;color:#fff}
+.cell.ys3{background:#e08a1e;color:#2a1c00} .cell.ys4{background:#2e8b57;color:#fff}
+.cell.ys5{background:#3a7bd5;color:#fff} .cell.ys6{background:#7a4fb0;color:#fff}
+.cell.ys7{background:#e58aa8;color:#2a1020} .cell.ys8{background:#4f5454;color:#aeb6b6}
+.yrank{width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:4px;}
+.yrank td,.yrank th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;}
+.yrank .sw{width:16px;height:16px;border-radius:4px;display:inline-block;vertical-align:-3px;}
+.ydrill{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;}
+.ytag{display:inline-block;padding:2px 9px;border-radius:6px;font-weight:700;font-size:.78rem;}
 
 /* equity / odds */
 .cardsel{display:flex;gap:6px;flex-wrap:wrap;}
@@ -108,6 +118,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   <div class="tab" data-tab="chart">レンジ表</div>
   <div class="tab" data-tab="equity">エクイティ計算</div>
   <div class="tab" data-tab="odds">ポットオッズ/EV</div>
+  <div class="tab" data-tab="yokosawa">ヨコサワ式</div>
 </div>
 
 <!-- ===== TRAIN ===== -->
@@ -192,6 +203,43 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
       <div class="b"><div class="n" id="qCorrect">0</div><div class="l">正解</div></div>
       <div class="b"><div class="n" id="qTotal">0</div><div class="l">出題</div></div>
       <div class="b"><div class="n" id="qRate">-</div><div class="l">正答率</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== YOKOSAWA ===== -->
+<section id="tab-yokosawa" class="hide">
+  <div class="panel">
+    <h2><span class="dot"></span>ヨコサワ式（ティアシステム）</h2>
+    <p class="lead" style="text-align:left;margin-bottom:10px;">世界のヨコサワさんの「色ランク」方式を再現。ハンドを8段階のティアに分け、ポジションとの関係でアクションを決めます。</p>
+    <table class="yrank">
+      <thead><tr><th>ランク</th><th>色</th><th>オープン可能な位置(6max)</th></tr></thead>
+      <tbody id="yrankBody"></tbody>
+    </table>
+    <div class="note">
+      <b>ルール：</b>オープンは自分の手のランクがその位置の基準以上なら参加。
+      vsレイズ → 相手の基準より<b>+1ランク上でコール／+2ランク上で3ベット</b>。
+      BBは弱いランクまで広くコール（対BTNは桃まで）。
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span>判定ドリル</h2>
+    <label class="fld" style="max-width:300px;">状況を選ぶ
+      <select id="ysScene"></select>
+    </label>
+    <button class="btn" id="ysDeal" style="margin-top:10px;">ランダムな手で判定</button>
+    <div class="ydrill" id="ysOut"><div class="empty" style="color:var(--sub);text-align:center;">「ランダムな手で判定」を押すと、ヨコサワ式での推奨アクションが出ます</div></div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span>ティア色表（復元版）</h2>
+    <div class="chart" id="ysChart"></div>
+    <div class="legend" id="ysLegend"></div>
+    <div class="note" style="border-color:var(--gold)">
+      <b>要確認：</b>この色表は<b>セル数（紺5/赤8/橙7/緑16/青11/紫23/桃12/灰87）に合わせた強さ較正の復元</b>です。
+      強いティアは実物と一致しますが、弱いティアの一部セルは本物のチャートと前後する可能性があります。
+      お手元の本物と見比べて「このマスは違う」があれば教えてください。該当セルを直します。
     </div>
   </div>
 </section>
@@ -309,7 +357,7 @@ document.querySelectorAll(".tab").forEach(t=>{
   t.onclick=()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
     t.classList.add("on");
-    ["train","chart","equity","odds"].forEach(id=>$("#tab-"+id).classList.add("hide"));
+    ["train","chart","equity","odds","yokosawa"].forEach(id=>$("#tab-"+id).classList.add("hide"));
     $("#tab-"+t.dataset.tab).classList.remove("hide");
   };
 });
@@ -488,6 +536,98 @@ function qAns(call){
   $("#qFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：必要エクイティ ${qState.need.toFixed(1)}% に対し ${qState.eq}%<small>${qState.call?'上回るのでコールが+EV':'下回るのでフォールドが正解'}</small></div>`;
   setTimeout(newQuiz, right?900:1700);
 }
+
+/* ===== ヨコサワ式（ティアシステム） ===== */
+// ハンドの強さスコア（プレイアビリティ加味）。降順ソート→セル数で8ティアに分割。
+function ysScore(hi,lo,suited){
+  if(hi===lo) return 95+hi*9;               // ペアは強さ順に中盤へ配置（AA最強〜22中位）
+  let s=hi*6+lo*4;
+  if(suited) s+=20;
+  const gap=hi-lo;
+  if(gap===1) s+=18; else if(gap===2) s+=9; else if(gap===3) s+=4;
+  if(suited&&gap===1&&lo>=4&&lo<=8) s+=20;  // ヨコサワ式スーテッドコネクター厚遇
+  if(suited&&gap===2&&lo>=4&&lo<=8) s+=8;
+  if(lo>=10) s+=16;                          // 両ブロードウェイ
+  if(hi===14) s+=8;                          // エースハイ
+  if(hi===13&&suited) s+=3;
+  return s;
+}
+// 実物チャート準拠の手動上書き（自信を持って読めたセル）
+const YS_OVERRIDE={ "76s":2, "65s":3, "54s":3, "87s":3 };
+const YS_COUNTS=[5,8,7,16,11,23,12,87];      // 紺5/赤8/橙7/緑16/青11/紫23/桃12/灰87
+const YS_NAMES=["SS(紺)","S(赤)","A(橙)","B(緑)","C(青)","D(紫)","境目(桃)","×(灰)"];
+const YS_COLOR=["#1a2a5e","#c0392b","#e08a1e","#2e8b57","#3a7bd5","#7a4fb0","#e58aa8","#4f5454"];
+const YS_OPENPOS=["どこでも","どこでも","EP〜(6max:UTG)","HJ〜","CO〜","BTN/SB〜","BB専用(コール)","フォールド"];
+// 全169ハンド列挙→スコア→ティア割当
+const YSMAP={};
+(function buildYS(){
+  const hands=[];
+  for(let i=2;i<=14;i++) for(let j=2;j<=i;j++){
+    if(i===j){ hands.push([i,j,false]); }
+    else { hands.push([i,j,true]); hands.push([i,j,false]); }
+  }
+  hands.sort((a,b)=>ysScore(b[0],b[1],b[2])-ysScore(a[0],a[1],a[2]));
+  let tier=0,inTier=0;
+  for(const [hi,lo,su] of hands){
+    while(inTier>=YS_COUNTS[tier]){ tier++; inTier=0; }
+    YSMAP[handLabel(hi,lo,su)]=tier; inTier++;
+  }
+  Object.assign(YSMAP, YS_OVERRIDE);          // 実物準拠の手動補正
+})();
+function ysTier(hi,lo,suited){ return YSMAP[handLabel(hi,lo,suited)]; } // 0..7
+// 6maxオープン基準（そのティア番号<=基準でオープン）
+const YS_OPEN={UTG:3,HJ:3,CO:4,BTN:5,SB:5}; // B=3,C=4,D=5 (0-index)
+function ysAction(hi,lo,suited,kind,pos){
+  const t=ysTier(hi,lo,suited);
+  if(kind==="rfi") return t<=YS_OPEN[pos]?"open":"fold";
+  if(kind==="vs"){ const OT=YS_OPEN[pos]; if(t<=OT-2)return"3bet"; if(t<=OT-1)return"call"; return"fold"; }
+  // bb: 強ければ3ベット、弱いランクまで広くコール（後ろの位置ほど広い）
+  if(t<=1) return "3bet";
+  const lim = (pos==="BTN"||pos==="SB")?6 : (pos==="CO")?5 : 4;
+  return t<=lim?"call":"fold";
+}
+const YS_ACTCOLOR={open:"#2e8b57","3bet":"#e08a1e",call:"#3a7bd5",fold:"#c0392b"};
+// ランク表
+$("#yrankBody").innerHTML=YS_NAMES.map((n,i)=>
+  `<tr><td><span class="sw" style="background:${YS_COLOR[i]}"></span> ${n.split("(")[0]}</td><td>${n.match(/\((.+)\)/)[1]}</td><td>${YS_OPENPOS[i]}</td></tr>`
+).join("");
+// シナリオ選択
+$("#ysScene").innerHTML=`
+  <optgroup label="オープン(RFI)">${POSORDER.map(p=>`<option value="rfi:${p}">${p} でオープン</option>`).join("")}</optgroup>
+  <optgroup label="vsオープン(BTNで対応)">
+    <option value="vs:UTG">UTGのレイズに対応</option><option value="vs:HJ">HJのレイズに対応</option><option value="vs:CO">COのレイズに対応</option>
+  </optgroup>
+  <optgroup label="BBディフェンス">
+    <option value="bb:UTG">BB vs UTG</option><option value="bb:HJ">BB vs HJ</option><option value="bb:CO">BB vs CO</option>
+    <option value="bb:BTN">BB vs BTN</option><option value="bb:SB">BB vs SB</option>
+  </optgroup>`;
+$("#ysDeal").onclick=()=>{
+  const deck=fullDeck();
+  for(let i=deck.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[deck[i],deck[j]]=[deck[j],deck[i]];}
+  let hi=RVAL[deck[0][0]],lo=RVAL[deck[1][0]];const suited=deck[0][1]===deck[1][1];if(lo>hi)[hi,lo]=[lo,hi];
+  const [kind,pos]=$("#ysScene").value.split(":");
+  const t=ysTier(hi,lo,suited), act=ysAction(hi,lo,suited,kind,pos), lbl=handLabel(hi,lo,suited);
+  const sceneTxt = kind==="rfi"?`${pos} でオープン`: kind==="vs"?`${pos}のレイズに対応(BTN)`:`BB vs ${pos}`;
+  $("#ysOut").innerHTML=`
+    <div style="text-align:center;font-size:1.6rem;font-weight:800;margin-bottom:6px;">${lbl}</div>
+    <div style="text-align:center;margin-bottom:10px;"><span class="ytag" style="background:${YS_COLOR[t]};color:#fff;">${YS_NAMES[t]}</span></div>
+    <div style="text-align:center;color:var(--sub);font-size:.82rem;margin-bottom:8px;">${sceneTxt}</div>
+    <div style="text-align:center;font-size:1.2rem;font-weight:800;color:${YS_ACTCOLOR[act]};">→ ${ACTLABEL[act]||act}</div>`;
+};
+// ティア色表
+(function renderYsChart(){
+  const ord=[...RANKS].reverse(); let html="";
+  for(let i=0;i<13;i++)for(let j=0;j<13;j++){
+    const r1=RVAL[ord[i]],r2=RVAL[ord[j]];
+    let hi,lo,suited,label;
+    if(i===j){hi=lo=r1;suited=false;label=ord[i]+ord[i];}
+    else if(i<j){hi=Math.max(r1,r2);lo=Math.min(r1,r2);suited=true;label=ord[i]+ord[j]+"s";}
+    else {hi=Math.max(r1,r2);lo=Math.min(r1,r2);suited=false;label=ord[j]+ord[i]+"o";}
+    html+=`<div class="cell ys${ysTier(hi,lo,suited)+1} ${i===j?'pair':''}">${label}</div>`;
+  }
+  $("#ysChart").innerHTML=html;
+  $("#ysLegend").innerHTML=YS_NAMES.map((n,i)=>`<span><i style="background:${YS_COLOR[i]}"></i>${n}</span>`).join("");
+})();
 
 /* ===== init ===== */
 $("#chartPos").innerHTML=`
