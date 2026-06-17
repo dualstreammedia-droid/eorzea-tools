@@ -118,7 +118,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   <div class="tab" data-tab="chart">レンジ表</div>
   <div class="tab" data-tab="equity">エクイティ計算</div>
   <div class="tab" data-tab="odds">ポットオッズ/EV</div>
-  <div class="tab" data-tab="yokosawa">ヨコサワ式</div>
+  <div class="tab" data-tab="yokosawa">ティア式</div>
 </div>
 
 <!-- ===== TRAIN ===== -->
@@ -210,8 +210,8 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
 <!-- ===== YOKOSAWA ===== -->
 <section id="tab-yokosawa" class="hide">
   <div class="panel">
-    <h2><span class="dot"></span>ヨコサワ式（ティアシステム）</h2>
-    <p class="lead" style="text-align:left;margin-bottom:10px;">世界のヨコサワさんの「色ランク」方式を再現。ハンドを8段階のティアに分け、ポジションとの関係でアクションを決めます。</p>
+    <h2><span class="dot"></span>ティア式（カラーランク）</h2>
+    <p class="lead" style="text-align:left;margin-bottom:10px;">ハンドを8段階のカラーティアに分け、ポジションとの関係でアクションを決める方式。色が濃いほど強く、どこからでも参加できます。</p>
     <table class="yrank">
       <thead><tr><th>ランク</th><th>色</th><th>オープン可能な位置(6max)</th></tr></thead>
       <tbody id="yrankBody"></tbody>
@@ -229,7 +229,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
       <select id="ysScene"></select>
     </label>
     <button class="btn" id="ysDeal" style="margin-top:10px;">ランダムな手で判定</button>
-    <div class="ydrill" id="ysOut"><div class="empty" style="color:var(--sub);text-align:center;">「ランダムな手で判定」を押すと、ヨコサワ式での推奨アクションが出ます</div></div>
+    <div class="ydrill" id="ysOut"><div class="empty" style="color:var(--sub);text-align:center;">「ランダムな手で判定」を押すと、ティア式での推奨アクションが出ます</div></div>
   </div>
 
   <div class="panel">
@@ -537,7 +537,7 @@ function qAns(call){
   setTimeout(newQuiz, right?900:1700);
 }
 
-/* ===== ヨコサワ式（ティアシステム） ===== */
+/* ===== ティア式（カラーランク） ===== */
 // ハンドの強さスコア（プレイアビリティ加味）。降順ソート→セル数で8ティアに分割。
 function ysScore(hi,lo,suited){
   if(hi===lo) return 95+hi*9;               // ペアは強さ順に中盤へ配置（AA最強〜22中位）
@@ -545,7 +545,7 @@ function ysScore(hi,lo,suited){
   if(suited) s+=20;
   const gap=hi-lo;
   if(gap===1) s+=18; else if(gap===2) s+=9; else if(gap===3) s+=4;
-  if(suited&&gap===1&&lo>=4&&lo<=8) s+=20;  // ヨコサワ式スーテッドコネクター厚遇
+  if(suited&&gap===1&&lo>=4&&lo<=8) s+=20;  // スーテッドコネクター厚遇
   if(suited&&gap===2&&lo>=4&&lo<=8) s+=8;
   if(lo>=10) s+=16;                          // 両ブロードウェイ
   if(hi===14) s+=8;                          // エースハイ
