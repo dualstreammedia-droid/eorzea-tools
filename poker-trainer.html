@@ -637,6 +637,13 @@ function ysAction(hi,lo,suited,kind,pos){
   return t<=lim?"call":"fold";
 }
 const YS_ACTCOLOR={open:"#2e8b57","3bet":"#e08a1e",call:"#3a7bd5",fold:"#c0392b"};
+// そのティアがどの位置からオープン可かのテキスト
+function tierOpenText(t){
+  const opens=POSORDER.filter(p=>t<=YS_OPEN[p]);
+  if(opens.length===0) return "どの位置でもオープン不可（BBコール専用 or 降り）";
+  if(opens.length===POSORDER.length) return "どの位置からでもオープン可";
+  return opens.join("/")+" からのみオープン可";
+}
 // ランク表
 $("#yrankBody").innerHTML=YS_NAMES.map((n,i)=>
   `<tr><td><span class="sw" style="background:${YS_COLOR[i]}"></span> ${n.split("(")[0]}</td><td>${n.match(/\((.+)\)/)[1]}</td><td>${YS_OPENPOS[i]}</td></tr>`
@@ -670,7 +677,7 @@ function ysNew(){
   else { const keys=YSKEYS[ysMode]; pos=keys[(Math.random()*keys.length)|0]; kind=(ysMode==="vsopen")?"vs":"bb"; threeway=true;
     scene=(ysMode==="vsopen")?`<b>${pos}</b> がオープン → あなた: <b>BTN</b>`:`<b>${pos}</b> がオープン → あなた: <b>BB</b>`; }
   const correct=ysAction(hi,lo,suited,kind,pos);
-  ysState={hi,lo,suited,correct,threeway};
+  ysState={hi,lo,suited,correct,threeway,kind,pos};
   $("#ysSceneTxt").innerHTML=scene;
   let left=c1,right=c2;if(RVAL[c2[0]]>RVAL[c1[0]]){left=c2;right=c1;}
   $("#ysCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
@@ -683,7 +690,11 @@ function ysAnswer(act){
   $("#ysC").textContent=ysCo;$("#ysT").textContent=ysTo;$("#ysR").textContent=Math.round(ysCo/ysTo*100)+"%";$("#ysS").textContent=ysStreak;
   const lbl=handLabel(ysState.hi,ysState.lo,ysState.suited);
   const t=ysTier(ysState.hi,ysState.lo,ysState.suited);
-  $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${YS_COLOR[t]};color:#fff;font-size:.72rem;">${YS_NAMES[t]}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b></div>`;
+  let reason;
+  if(ysState.kind==="rfi"){ reason=`${YS_NAMES[t]}は ${tierOpenText(t)}`; }
+  else if(ysState.kind==="vs"){ reason=`相手${ysState.pos}の基準より、+1ランク上でコール／+2ランク上で3ベット`; }
+  else { reason=(ysState.pos==="BTN"||ysState.pos==="SB")?`BB対${ysState.pos}：桃まで広くコール`:`BB対${ysState.pos}：通常域までコール`; }
+  $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${YS_COLOR[t]};color:#fff;font-size:.72rem;">${YS_NAMES[t]}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b><small>${reason}</small></div>`;
   setTimeout(ysNew, right?750:1700);
 }
 ysNew();
