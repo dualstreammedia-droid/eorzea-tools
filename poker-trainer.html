@@ -87,6 +87,23 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .yrank .sw{width:16px;height:16px;border-radius:4px;display:inline-block;vertical-align:-3px;}
 .ydrill{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;}
 .ytag{display:inline-block;padding:2px 9px;border-radius:6px;font-weight:700;font-size:.78rem;}
+/* course accordion */
+.acc{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.acc-h{padding:12px;background:var(--panel2);cursor:pointer;font-weight:700;font-size:.9rem;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.acc-h .num{color:var(--accent2);margin-right:6px;}
+.acc-h .ar{color:var(--sub);transition:.2s;flex-shrink:0;}
+.acc.open .acc-h .ar{transform:rotate(90deg);}
+.acc-b{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:.86rem;}
+.acc.open .acc-b{max-height:1600px;}
+.acc-b .inner{padding:12px 14px;}
+.acc-b ul{margin:6px 0;padding-left:18px;} .acc-b li{margin:5px 0;}
+.acc-b b{color:var(--accent2);} .acc-b .key{color:var(--gold);font-weight:700;}
+.qopt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--txt);
+  border-radius:9px;padding:11px 12px;margin:7px 0;font-size:.88rem;cursor:pointer;transition:.12s;}
+.qopt:hover{border-color:var(--accent2);}
+.qopt.ok{background:rgba(77,227,154,.15);border-color:var(--good);}
+.qopt.ng{background:rgba(255,93,108,.15);border-color:var(--bad);}
+.qq{font-weight:700;font-size:.92rem;margin-bottom:4px;}
 
 /* equity / odds */
 .cardsel{display:flex;gap:6px;flex-wrap:wrap;}
@@ -119,6 +136,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   <div class="tab" data-tab="equity">エクイティ計算</div>
   <div class="tab" data-tab="odds">ポットオッズ/EV</div>
   <div class="tab" data-tab="yokosawa">ティア式</div>
+  <div class="tab" data-tab="learn">講座</div>
 </div>
 
 <!-- ===== TRAIN ===== -->
@@ -257,6 +275,25 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   </div>
 </section>
 
+<!-- ===== LEARN ===== -->
+<section id="tab-learn" class="hide">
+  <div class="panel">
+    <h2><span class="dot"></span>初心者講座（勝てるロジック）</h2>
+    <p class="lead" style="text-align:left;margin-bottom:12px;">キャッシュで長期的に勝つための本質だけを、9講にまとめました。各見出しをタップで開きます。</p>
+    <div id="lessons"></div>
+  </div>
+  <div class="panel">
+    <h2><span class="dot"></span>練習問題（知識チェック）</h2>
+    <div id="quizQ"></div>
+    <div class="stats" style="margin-top:14px;">
+      <div class="b"><div class="n" id="lqC">0</div><div class="l">正解</div></div>
+      <div class="b"><div class="n" id="lqT">0</div><div class="l">出題</div></div>
+      <div class="b"><div class="n" id="lqR">-</div><div class="l">正答率</div></div>
+    </div>
+    <button class="btn ghost" id="lqNext" style="margin-top:12px;width:100%;">次の問題</button>
+  </div>
+</section>
+
 <footer>
   NLHEキャッシュゲーム基礎トレーナー（個人練習用）｜役判定はクライアント内モンテカルロ<br>
   レンジは標準的な目安（簡略化したマージ型）です。厳密なGTOはソルバー(GTO Wizard等)と併用してください。
@@ -370,7 +407,7 @@ document.querySelectorAll(".tab").forEach(t=>{
   t.onclick=()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
     t.classList.add("on");
-    ["train","chart","equity","odds","yokosawa"].forEach(id=>$("#tab-"+id).classList.add("hide"));
+    ["train","chart","equity","odds","yokosawa","learn"].forEach(id=>$("#tab-"+id).classList.add("hide"));
     $("#tab-"+t.dataset.tab).classList.remove("hide");
   };
 });
@@ -664,6 +701,111 @@ ysNew();
   $("#ysChart").innerHTML=html;
   $("#ysLegend").innerHTML=YS_NAMES.map((n,i)=>`<span><i style="background:${YS_COLOR[i]}"></i>${n}</span>`).join("");
 })();
+
+/* ===== 初心者講座 ===== */
+const LESSONS=[
+  {t:"勝つための大原則", b:`
+    <ul>
+      <li>ポーカーは運のゲームに見えて、<b>長期的にはスキルで勝てる</b>。利益の源泉は<span class="key">相手のミス</span>です。自分のミスを減らし、相手のミスを引き出すゲーム。</li>
+      <li>基本スタイルは<span class="key">タイト・アグレッシブ(TAG)</span>。参加する手を絞り(タイト)、参加したら積極的にベット/レイズ(アグレッシブ)。</li>
+      <li>すべての土台はこれ：<b>強い手で大きく、弱い手は小さく(or降りる)</b>。逆をやる人がお金を負けます。</li>
+    </ul>`},
+  {t:"ポジションが命", b:`
+    <ul>
+      <li><b>後に行動できるほど有利</b>。相手の動きを見てから決められるから。情報量＝お金です。</li>
+      <li>強い順：<span class="key">BTN &gt; CO &gt; HJ &gt; UTG</span>。BTNが最強、UTG(最初)が最弱。</li>
+      <li>良い位置では手を広げ、悪い位置では絞る。<b>同じ手でも位置で価値が変わる</b>のがポーカー。</li>
+    </ul>`},
+  {t:"プリフロップの規律", b:`
+    <ul>
+      <li>最初にポットに入るなら<span class="key">必ずレイズ</span>。コールだけで入る「リンプ」は主導権を失うリーク。</li>
+      <li>参加する手は<b>レンジで覚える</b>（このアプリのレンジ特訓/ティア式で反復）。気分で決めない。</li>
+      <li><b>降りる勇気</b>。「もったいない」で弱い手に参加するのが一番の負け筋。降りられる人が勝ちます。</li>
+    </ul>`},
+  {t:"ハンドの本当の価値", b:`
+    <ul>
+      <li>見た目の強さ≠実際の勝ちやすさ。<b>プレイしやすさ(実現可能性)</b>が大事。スーテッドやコネクターが優遇される理由です。</li>
+      <li><span class="key">ドミネートに注意</span>：A2はAKに「キッカー負け」する。同じトップペアでも蹴り（キッカー）が弱いと大損。</li>
+      <li>小ペアは<b>セット狙い</b>(約8回に1回成立)。安く見れてスタックが深い時だけ価値が出ます。</li>
+    </ul>`},
+  {t:"ベットの目的は2つだけ", b:`
+    <ul>
+      <li>ベットする理由は<span class="key">①バリュー</span>(自分より弱い手からコールを得る)と<span class="key">②ブラフ</span>(強い手を降ろす)の2つだけ。</li>
+      <li>「なんとなくベット」をやめる。毎回<b>「これはバリュー？ブラフ？」</b>を自問する習慣を。</li>
+      <li>初心者は<b>バリュー厚め・ブラフ控えめ</b>が勝ちやすい。特に相手が弱い卓では。</li>
+    </ul>`},
+  {t:"ポットオッズとエクイティ", b:`
+    <ul>
+      <li>コールに必要な勝率＝<span class="key">コール額 ÷ (ポット+コール額+自分のコール)</span>。これを自分の勝率(エクイティ)が上回ればコールが得。</li>
+      <li>ドローの勝率はアウツから概算(<b>2-4の法則</b>：残り2枚ならアウツ×4%、1枚なら×2%)。</li>
+      <li>このアプリの<b>「ポットオッズ/EV」タブ</b>で反復し、瞬時に計算できるように。</li>
+    </ul>`},
+  {t:"バンクロール管理と分散", b:`
+    <ul>
+      <li>キャッシュは最低<span class="key">20〜30バイイン</span>を用意。お金に余裕＝冷静な判断につながる。</li>
+      <li>ポーカーは<b>分散(ブレ)が大きい</b>。上手くても連敗するし、下手でも勝つ日がある。</li>
+      <li>勝てているかは<b>数万ハンド単位</b>で見る。今日の結果で自分の実力を判断しない。</li>
+    </ul>`},
+  {t:"初心者がやりがちな負けパターン", b:`
+    <ul>
+      <li><b>リンプ参加</b>／<b>コールしすぎ</b>(ついていくだけ)／<b>弱いキッカーで大ポット</b>／<b>無謀なドローチェイス</b>／<b>ティルト</b>(感情的プレー)。</li>
+      <li>共通点は「降りるべき所で降りない」。<span class="key">フォールドが最善の場面は驚くほど多い</span>。</li>
+      <li>負けが込んだら<b>席を立つ</b>のも技術。取り返そうとした一手が傷を広げます。</li>
+    </ul>`},
+  {t:"ライブ・低レートで勝つ実戦ロジック", b:`
+    <ul>
+      <li>低レートは相手のレベルが低い＝<span class="key">バリューを厚く取る</span>のが正解。難しいブラフは不要。</li>
+      <li>タイトに待って、<b>強い手を作ったら大きく</b>。弱い相手は弱い手でも降りないので、ブラフは効きにくい。</li>
+      <li>「この相手は降りない」と分かったら<b>その人にはブラフしない</b>。相手を見て調整するのが勝者の習慣。</li>
+    </ul>`},
+];
+(function renderLessons(){
+  $("#lessons").innerHTML=LESSONS.map((l,i)=>`
+    <div class="acc">
+      <div class="acc-h"><span><span class="num">第${i+1}講</span>${l.t}</span><span class="ar">▶</span></div>
+      <div class="acc-b"><div class="inner">${l.b}</div></div>
+    </div>`).join("");
+  document.querySelectorAll("#lessons .acc-h").forEach(h=>h.onclick=()=>h.parentElement.classList.toggle("open"));
+})();
+
+/* ===== 練習問題 ===== */
+const QUIZ=[
+  {q:"ポーカーで長期的に利益を生む一番の源泉は？", o:["自分の強い手","相手のミス","運の良さ","大きく賭ける勇気"], a:1, e:"利益は相手のミスから生まれます。自分のミスを減らし相手のミスを引き出すのが本質。"},
+  {q:"初心者が基本とすべきプレースタイルは？", o:["ルース・パッシブ(広く受け身)","タイト・アグレッシブ(絞って積極)","とにかくオールイン","常にブラフ"], a:1, e:"参加手を絞り、入ったら積極的に。これが最も再現性高く勝てる型です。"},
+  {q:"最初にポットへ入る時の正しい入り方は？", o:["コール(リンプ)で安く","レイズ","チェック","状況次第でどちらでも"], a:1, e:"最初に入るならレイズ。リンプは主導権を失う代表的なリークです。"},
+  {q:"最も有利なポジションはどれ？", o:["UTG(最初)","BB","BTN","SB"], a:2, e:"BTNは最後に行動できるため情報が最も多く、最強のポジションです。"},
+  {q:"ポット100、相手がベット50。コールに必要な勝率(必要エクイティ)は？", o:["約50%","約33%","約25%","約10%"], a:2, e:"50 ÷ (100+50+50) = 25%。これより勝率が高ければコールが+EV。"},
+  {q:"ベットする2つの正当な理由は？", o:["バリューとブラフ","運試しと暇つぶし","チップが多いから","相手が強そうだから"], a:0, e:"ベットは①弱い手からコールを得る(バリュー)②強い手を降ろす(ブラフ)の2つだけ。"},
+  {q:"低レート/ライブで勝つための基本方針は？", o:["難しいブラフを多用","バリューを厚く、ブラフ控えめ","常にタイトに降りる","毎回プリフロップでオールイン"], a:1, e:"弱い相手は降りないのでブラフが効きにくい。バリューを厚く取るのが正解。"},
+  {q:"キャッシュゲームのバンクロール目安は？", o:["1バイインで十分","5バイイン","20〜30バイイン以上","全財産"], a:2, e:"分散に耐え冷静に打つため、最低20〜30バイインの余裕を持つのが基本です。"},
+  {q:"小さいポケットペアでフロップを見る主な狙いは？", o:["トップペアを作る","セット(スリーカード)を作る","ストレートを作る","降ろす"], a:1, e:"小ペアはセット狙い(約8回に1回)。安く見れて深い時に価値が出ます。"},
+  {q:"AKに対してA2が大きく負けやすい理由は？", o:["枚数が少ない","キッカー負け(ドミネート)","スートが弱い","運が悪い"], a:1, e:"同じトップペアでも蹴り札(キッカー)が弱いと負ける。ドミネートに注意。"},
+  {q:"連敗して熱くなってきた。正しい対応は？", o:["賭け額を上げて取り返す","分散と理解し冷静に、必要なら席を立つ","ブラフを増やす","弱い手でも参加する"], a:1, e:"ティルト(感情的プレー)は最大の敵。短期の負けは分散。冷静さを欠いたら離席が技術。"},
+  {q:"「降りる(フォールド)」についての正しい考え方は？", o:["弱気で良くない","最善の場面が驚くほど多い","お金がもったいない","強い相手にだけ"], a:1, e:"降りるべき所で降りられる人が勝ちます。フォールドは立派な勝ち筋です。"},
+];
+let lqOrder=[], lqIdx=0, lqC=0, lqT=0, lqAnswered=false;
+function lqShuffle(){ lqOrder=[...Array(QUIZ.length).keys()]; for(let i=lqOrder.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[lqOrder[i],lqOrder[j]]=[lqOrder[j],lqOrder[i]];} lqIdx=0; }
+function lqShow(){
+  lqAnswered=false;
+  const q=QUIZ[lqOrder[lqIdx]];
+  $("#quizQ").innerHTML=`<div class="qq">${q.q}</div>`+
+    q.o.map((opt,i)=>`<button class="qopt" data-i="${i}">${opt}</button>`).join("")+
+    `<div id="lqFb"></div>`;
+  $("#quizQ").querySelectorAll(".qopt").forEach(b=>b.onclick=()=>lqPick(+b.dataset.i));
+}
+function lqPick(i){
+  if(lqAnswered) return; lqAnswered=true;
+  const q=QUIZ[lqOrder[lqIdx]], right=(i===q.a);
+  lqT++; if(right) lqC++;
+  $("#lqC").textContent=lqC;$("#lqT").textContent=lqT;$("#lqR").textContent=Math.round(lqC/lqT*100)+"%";
+  $("#quizQ").querySelectorAll(".qopt").forEach((b,bi)=>{
+    if(bi===q.a) b.classList.add("ok"); else if(bi===i) b.classList.add("ng");
+    b.style.pointerEvents="none";
+  });
+  $("#lqFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}<small>${q.e}</small></div>`;
+}
+$("#lqNext").onclick=()=>{ lqIdx++; if(lqIdx>=lqOrder.length) lqShuffle(); lqShow(); };
+lqShuffle(); lqShow();
 
 /* ===== init ===== */
 $("#chartPos").innerHTML=`
