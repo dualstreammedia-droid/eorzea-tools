@@ -104,6 +104,11 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .qopt.ok{background:rgba(77,227,154,.15);border-color:var(--good);}
 .qopt.ng{background:rgba(255,93,108,.15);border-color:var(--bad);}
 .qq{font-weight:700;font-size:.92rem;margin-bottom:4px;}
+.tqgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0;}
+.tqbtn{padding:12px 4px;border-radius:8px;border:2px solid transparent;color:#fff;font-weight:700;font-size:.78rem;cursor:pointer;line-height:1.2;}
+.tqbtn.miss{outline:2px solid #fff;outline-offset:1px;}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--sub);cursor:pointer;user-select:none;margin-bottom:4px;}
+.toggle input{width:18px;height:18px;}
 
 /* equity / odds */
 .cardsel{display:flex;gap:6px;flex-wrap:wrap;}
@@ -261,6 +266,25 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
       </div>
     </div>
     <div class="note">ティア式（カラーランク）のロジックで判定します。間違えるとそのハンドのティアと正解が出るので、色ランクが体に入ります。</div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span>ティア暗記クイズ</h2>
+    <p class="lead" style="text-align:left;margin-bottom:8px;">手を見て<b>色（ランク）を当てる</b>クイズ。これを覚えれば、あとは位置のルールを当てるだけで全ポジションの判断ができます。</p>
+    <label class="toggle"><input type="checkbox" id="tqReview"> 間違えた手だけ復習する</label>
+    <div class="tcard">
+      <div class="cards" id="tqCards"></div>
+      <div class="qq" style="text-align:center;">この手のランク（色）は？</div>
+      <div class="tqgrid" id="tqBtns"></div>
+      <div id="tqFb"></div>
+      <div class="stats">
+        <div class="b"><div class="n" id="tqC">0</div><div class="l">正解</div></div>
+        <div class="b"><div class="n" id="tqT">0</div><div class="l">出題</div></div>
+        <div class="b"><div class="n" id="tqR">-</div><div class="l">正答率</div></div>
+        <div class="b"><div class="n" id="tqW">0</div><div class="l">弱点数</div></div>
+      </div>
+    </div>
+    <div class="note">出題は色付きの手（参加候補）を中心に。間違えた手は自動で弱点リストに入り、上のチェックで集中復習できます。正解すると弱点から外れます。</div>
   </div>
 
   <div class="panel">
@@ -712,6 +736,61 @@ ysNew();
   $("#ysChart").innerHTML=html;
   $("#ysLegend").innerHTML=YS_NAMES.map((n,i)=>`<span><i style="background:${YS_COLOR[i]}"></i>${n}</span>`).join("");
 })();
+
+/* ===== ティア暗記クイズ ===== */
+let tqState=null, tqC=0, tqT=0, tqStreak=0;
+const tqMistakes=new Set();
+function tqRandHand(){
+  // 色付き(非グレー)を中心に出題。グレーは一定確率でスキップ。
+  for(let tries=0;tries<20;tries++){
+    const deck=fullDeck();
+    const a=(Math.random()*52)|0; let b=(Math.random()*52)|0; while(b===a)b=(Math.random()*52)|0;
+    let hi=RVAL[deck[a][0]],lo=RVAL[deck[b][0]];const su=deck[a][1]===deck[b][1];if(lo>hi)[hi,lo]=[lo,hi];
+    if(ysTier(hi,lo,su)===7 && Math.random()<0.7) continue;  // グレーは7割スキップ
+    return {hi,lo,suited:su,c1:deck[a],c2:deck[b]};
+  }
+  const deck=fullDeck();let hi=RVAL[deck[0][0]],lo=RVAL[deck[1][0]];const su=deck[0][1]===deck[1][1];if(lo>hi)[hi,lo]=[lo,hi];
+  return {hi,lo,suited:su,c1:deck[0],c2:deck[1]};
+}
+function tqFromLabel(lbl){
+  // "AKs"/"77"/"AQo" → 表示用カード
+  const hi=RVAL[lbl[0]], lo=RVAL[lbl[1]], su=lbl[2]==="s";
+  const c1=lbl[0]+"s";              // 1枚目はスペード
+  const c2=lbl[1]+(su?"s":"h");     // スーテッドは同じスート、それ以外は別スート
+  return {hi,lo,suited:su,c1,c2};
+}
+function tqRenderBtns(){
+  $("#tqBtns").innerHTML=YS_NAMES.map((n,i)=>
+    `<button class="tqbtn" data-t="${i}" style="background:${YS_COLOR[i]};${i===7?'color:#cdd':''}">${n}</button>`
+  ).join("");
+  $("#tqBtns").querySelectorAll("button").forEach(b=>b.onclick=()=>tqPick(+b.dataset.t));
+}
+function tqNew(){
+  const review=$("#tqReview").checked;
+  let h;
+  if(review && tqMistakes.size>0){
+    const arr=[...tqMistakes]; h=tqFromLabel(arr[(Math.random()*arr.length)|0]);
+  } else { h=tqRandHand(); }
+  tqState=h;
+  let left=h.c1,right=h.c2; if(RVAL[h.c2[0]]>RVAL[h.c1[0]]){left=h.c2;right=h.c1;}
+  $("#tqCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
+  tqRenderBtns(); $("#tqFb").innerHTML="";
+}
+function tqPick(guess){
+  if(!tqState) return;
+  const t=ysTier(tqState.hi,tqState.lo,tqState.suited);
+  const lbl=handLabel(tqState.hi,tqState.lo,tqState.suited);
+  const right=(guess===t);
+  tqT++; if(right){tqC++;tqStreak++;} else {tqStreak=0; tqMistakes.add(lbl);}
+  if(right && $("#tqReview").checked) tqMistakes.delete(lbl);
+  $("#tqC").textContent=tqC;$("#tqT").textContent=tqT;$("#tqR").textContent=Math.round(tqC/tqT*100)+"%";$("#tqW").textContent=tqMistakes.size;
+  // 正解ボタンを強調
+  $("#tqBtns").querySelectorAll("button").forEach(b=>{ if(+b.dataset.t===t) b.classList.add("miss"); b.style.pointerEvents="none"; });
+  $("#tqFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <span class="ytag" style="background:${YS_COLOR[t]};color:#fff;font-size:.72rem;">${YS_NAMES[t]}</span><small>${right?'':'白枠が正解の色です'}</small></div>`;
+  setTimeout(tqNew, right?700:1700);
+}
+$("#tqReview").onchange=tqNew;
+tqNew();
 
 /* ===== 初心者講座 ===== */
 const LESSONS=[
