@@ -109,6 +109,27 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .tqbtn.miss{outline:2px solid #fff;outline-offset:1px;}
 .toggle{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--sub);cursor:pointer;user-select:none;margin-bottom:4px;}
 .toggle input{width:18px;height:18px;}
+/* table diagram */
+.ptable{position:relative;width:100%;max-width:430px;margin:12px auto 6px;aspect-ratio:1.5/1;}
+.felt{position:absolute;left:16%;right:16%;top:21%;bottom:21%;background:radial-gradient(ellipse at center,#1f7a4d,#0c4327);
+  border:7px solid #6b4423;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#bfe9d0;font-size:.74rem;letter-spacing:.12em;}
+.seat{position:absolute;transform:translate(-50%,-50%);background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:5px 7px;text-align:center;min-width:52px;}
+.seat .pn{font-weight:800;font-size:.84rem;}
+.seat .pr{font-size:.6rem;color:var(--sub);line-height:1.2;}
+.seat .ord{position:absolute;top:-8px;left:-8px;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#06150d;font-size:.62rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.seat.btn{border-color:var(--gold);} .seat.btn .pn{color:var(--gold);}
+.seat .chip{display:inline-block;font-size:.58rem;background:var(--gold);color:#3a2a00;border-radius:8px;padding:0 5px;margin-top:2px;font-weight:700;}
+/* cpu game */
+.huboard{display:flex;justify-content:center;gap:6px;margin:8px 0;min-height:96px;align-items:center;flex-wrap:wrap;}
+.hurow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0;}
+.hubox{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;}
+.hubox.act{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2);}
+.hubox .l{font-size:.66rem;color:var(--sub);} .hubox .v{font-weight:800;font-size:1.05rem;color:var(--gold);}
+.hupot{text-align:center;font-weight:800;color:var(--accent2);margin:4px 0;}
+.hulog{font-size:.78rem;color:var(--sub);background:var(--panel2);border-radius:8px;padding:8px 10px;margin-top:8px;min-height:40px;}
+.pcard.sm{width:42px;height:60px;} .pcard.sm .rk{font-size:1.2rem;} .pcard.sm .st{font-size:.9rem;}
+.pcard.back{background:linear-gradient(135deg,#3a2a6a,#23184a);}
 
 /* equity / odds */
 .cardsel{display:flex;gap:6px;flex-wrap:wrap;}
@@ -142,6 +163,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   <div class="tab" data-tab="odds">ポットオッズ/EV</div>
   <div class="tab" data-tab="yokosawa">ティア式</div>
   <div class="tab" data-tab="learn">講座</div>
+  <div class="tab" data-tab="cpu">CPU戦</div>
 </div>
 
 <!-- ===== TRAIN ===== -->
@@ -302,6 +324,23 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
 <!-- ===== LEARN ===== -->
 <section id="tab-learn" class="hide">
   <div class="panel">
+    <h2><span class="dot"></span>テーブルとポジション図（6-max）</h2>
+    <div class="ptable">
+      <div class="felt">POT（中央に賭け金）</div>
+      <div class="seat" style="left:50%;top:7%"><div class="ord">1</div><div class="pn">UTG</div><div class="pr">アーリー<br>最初に行動</div></div>
+      <div class="seat" style="left:89%;top:27%"><div class="ord">2</div><div class="pn">HJ</div><div class="pr">ミドル</div></div>
+      <div class="seat" style="left:89%;top:73%"><div class="ord">3</div><div class="pn">CO</div><div class="pr">レイト</div></div>
+      <div class="seat btn" style="left:50%;top:93%"><div class="ord">4</div><div class="pn">BTN</div><div class="pr">ボタン<br>最強</div><span class="chip">D</span></div>
+      <div class="seat" style="left:11%;top:73%"><div class="ord">5</div><div class="pn">SB</div><div class="pr">スモール</div><span class="chip">0.5</span></div>
+      <div class="seat" style="left:11%;top:27%"><div class="ord">6</div><div class="pn">BB</div><div class="pr">ビッグ</div><span class="chip">1.0</span></div>
+    </div>
+    <div class="note">
+      丸数字＝<b>プリフロップの行動順</b>（UTG→…→BB）。後に行動するほど情報が多く有利＝<b>BTNが最強、UTGが最弱</b>。
+      <b>SB/BB</b>は強制ベット（ブラインド）を先に払う席。ボタン(D)は1ハンドごとに左へ移動し、全員が順に各ポジションを通ります。
+      ※フロップ以降の行動順はSBが先頭、BTNが最後になります。
+    </div>
+  </div>
+  <div class="panel">
     <h2><span class="dot"></span>初心者講座（勝てるロジック）</h2>
     <p class="lead" style="text-align:left;margin-bottom:12px;">キャッシュで長期的に勝つための本質だけを、9講にまとめました。各見出しをタップで開きます。</p>
     <div id="lessons"></div>
@@ -316,6 +355,29 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
     </div>
     <button class="btn ghost" id="lqNext" style="margin-top:12px;width:100%;">次の問題</button>
   </div>
+</section>
+
+<!-- ===== CPU ===== -->
+<section id="tab-cpu" class="hide">
+  <div class="panel">
+    <h2><span class="dot"></span>CPU戦（ヘッズアップ）</h2>
+    <p class="lead" style="text-align:left;margin-bottom:10px;">1対1でCPUと対戦。プリフロップはレンジ、フロップ以降は手の強さとオッズで判断する簡易CPUです。ベット判断と実戦の流れの練習に。各100bb(200点)スタート。</p>
+    <div class="hurow">
+      <div class="hubox" id="cpuBox"><div class="l">CPU</div><div class="v" id="cpuStack">200</div></div>
+      <div class="hubox" id="youBox"><div class="l">あなた</div><div class="v" id="youStack">200</div></div>
+    </div>
+    <div class="hupot" id="potBox">POT 0</div>
+    <div style="text-align:center;color:var(--sub);font-size:.68rem;margin-top:6px;">CPUの手</div>
+    <div class="huboard" id="cpuCards"></div>
+    <div style="text-align:center;color:var(--sub);font-size:.68rem;">ボード</div>
+    <div class="huboard" id="boardCards"></div>
+    <div style="text-align:center;color:var(--sub);font-size:.68rem;">あなたの手</div>
+    <div class="huboard" id="youCards"></div>
+    <div class="actions" id="huActions" style="margin-top:6px;"></div>
+    <div class="hulog" id="huLog">「新しいハンド」で開始します。</div>
+    <button class="btn ghost" id="huNew" style="margin-top:10px;width:100%;">新しいハンド</button>
+  </div>
+  <div class="note" style="max-width:880px;margin:0 auto;">CPUは学習用の簡易ロジック（GTOではありません）。ベットサイズは自動（約2/3ポット）。スタックが尽きたら次のハンドで200点にリセットします。</div>
 </section>
 
 <footer>
@@ -431,7 +493,7 @@ document.querySelectorAll(".tab").forEach(t=>{
   t.onclick=()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
     t.classList.add("on");
-    ["train","chart","equity","odds","yokosawa","learn"].forEach(id=>$("#tab-"+id).classList.add("hide"));
+    ["train","chart","equity","odds","yokosawa","learn","cpu"].forEach(id=>$("#tab-"+id).classList.add("hide"));
     $("#tab-"+t.dataset.tab).classList.remove("hide");
   };
 });
@@ -905,6 +967,147 @@ function lqPick(i){
 }
 $("#lqNext").onclick=()=>{ lqIdx++; if(lqIdx>=lqOrder.length) lqShuffle(); lqShow(); };
 lqShuffle(); lqShow();
+
+/* ===== CPU戦（ヘッズアップ） ===== */
+const HU_SB=1, HU_BB=2, HU_START=200, HU_MAXRAISE=4;
+let hu=null, huActed={you:false,cpu:false}, huBlindOption=false, huMsgs=[];
+const nm=p=>p==='you'?'あなた':'CPU';
+const otherP=p=>p==='you'?'cpu':'you';
+const huHigh=()=>Math.max(hu.bet.you,hu.bet.cpu);
+function huCommit(p,amt){ const a=Math.min(amt,hu.stack[p]); hu.stack[p]-=a; hu.bet[p]+=a; hu.pot+=a; return a; }
+function huLog(m){ huMsgs.push(m); if(huMsgs.length>3)huMsgs.shift(); $("#huLog").innerHTML=huMsgs.join("<br>"); }
+function huCardHTML(card,hidden){
+  if(hidden) return `<div class="pcard sm back"></div>`;
+  const r=card[0],s=card[1],red=SRED[s]?"red":"blk";
+  return `<div class="pcard sm ${red}"><div class="rk">${r}</div><div class="st">${SSYM[s]}</div></div>`;
+}
+function huNew(){
+  const prevButton = hu?hu.button:null;
+  let stacks = hu?{you:hu.stack.you,cpu:hu.stack.cpu}:{you:HU_START,cpu:HU_START};
+  if(stacks.you<HU_BB||stacks.cpu<HU_BB){ stacks={you:HU_START,cpu:HU_START}; huLog("スタックをリセットしました。"); }
+  const button = prevButton===null?'you':otherP(prevButton);
+  const deck=fullDeck();
+  for(let i=deck.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[deck[i],deck[j]]=[deck[j],deck[i]];}
+  hu={stack:{...stacks}, bet:{you:0,cpu:0}, pot:0, deck,
+    board:[], hand:{you:[deck.pop(),deck.pop()], cpu:[deck.pop(),deck.pop()]},
+    street:'pre', button, turn:button, raises:0, over:false};
+  huActed={you:false,cpu:false}; huBlindOption=true;
+  huCommit(button,HU_SB); huCommit(otherP(button),HU_BB);
+  huMsgs=[]; huLog(`新ハンド：${nm(button)}がボタン(SB)。ブラインド投入。`);
+  huRender(); huProceed();
+}
+function huProceed(){
+  if(hu.over) return;
+  if(hu.turn==='cpu'){ huRenderActions(false); setTimeout(huCpuAct,650); }
+  else huRenderActions(true);
+}
+function huFixUncalled(){
+  if(hu.bet.you!==hu.bet.cpu){
+    const hi=hu.bet.you>hu.bet.cpu?'you':'cpu';
+    const diff=Math.abs(hu.bet.you-hu.bet.cpu);
+    hu.bet[hi]-=diff; hu.stack[hi]+=diff; hu.pot-=diff;
+  }
+}
+function huBetSize(p,type){
+  const high=huHigh();
+  if(type==='bet'){ let add=Math.max(Math.round(hu.pot*0.66),HU_BB); return Math.min(add,hu.stack[p]); }
+  let target=high+Math.max(HU_BB,high);
+  return Math.min(target-hu.bet[p], hu.stack[p]);
+}
+function huAct(p,type){
+  if(hu.over||hu.turn!==p) return;
+  const other=otherP(p), need=huHigh()-hu.bet[p];
+  if(type==='fold'){ huLog(`${nm(p)}: フォールド`); huEnd(other); return; }
+  if(type==='check'){ huActed[p]=true; huLog(`${nm(p)}: チェック`);
+    if(huActed[other]) huNextStreet(); else { hu.turn=other; huProceed(); } return; }
+  if(type==='call'){ const a=huCommit(p,need); huActed[p]=true; huFixUncalled(); huLog(`${nm(p)}: コール ${a}`);
+    if(huBlindOption && hu.street==='pre' && p===hu.button){ huBlindOption=false; hu.turn=other; huRender(); huProceed(); return; }
+    huNextStreet(); return; }
+  if(type==='bet'||type==='raise'){
+    const a=huCommit(p,huBetSize(p,type)); huActed[p]=true; huActed[other]=false; hu.raises++; huBlindOption=false;
+    huLog(`${nm(p)}: ${type==='bet'?'ベット':'レイズ'} +${a}（計${hu.bet[p]}）`);
+    hu.turn=other; huRender(); huProceed(); return;
+  }
+}
+function huNextStreet(){
+  hu.bet.you=0; hu.bet.cpu=0; huActed={you:false,cpu:false}; hu.raises=0; huBlindOption=false;
+  if(hu.street==='pre'){ hu.board.push(hu.deck.pop(),hu.deck.pop(),hu.deck.pop()); hu.street='flop'; }
+  else if(hu.street==='flop'){ hu.board.push(hu.deck.pop()); hu.street='turn'; }
+  else if(hu.street==='turn'){ hu.board.push(hu.deck.pop()); hu.street='river'; }
+  else { huShowdown(); return; }
+  huLog(`--- ${hu.street.toUpperCase()} ---`);
+  if(hu.stack.you===0||hu.stack.cpu===0){ huRender(); setTimeout(huRunout,700); return; }
+  hu.turn=otherP(hu.button); huRender(); huProceed();
+}
+function huRunout(){
+  while(hu.board.length<5) hu.board.push(hu.deck.pop());
+  hu.street='river'; huRender(); setTimeout(huShowdown,500);
+}
+function huShowdown(){
+  hu.over=true;
+  const ys=best7([...hu.hand.you.map(cardObj),...hu.board.map(cardObj)]);
+  const cs=best7([...hu.hand.cpu.map(cardObj),...hu.board.map(cardObj)]);
+  const c=cmp(ys,cs), pot=hu.pot;
+  if(c>0){ hu.stack.you+=pot; huLog(`ショーダウン：あなたの勝ち！ +${pot}`); }
+  else if(c<0){ hu.stack.cpu+=pot; huLog(`ショーダウン：CPUの勝ち（+${pot}）。`); }
+  else { hu.stack.you+=Math.floor(pot/2); hu.stack.cpu+=Math.ceil(pot/2); huLog(`ショーダウン：引き分け。`); }
+  hu.pot=0; huRender(true); $("#huActions").innerHTML=`<div style="text-align:center;color:var(--sub);width:100%;">「新しいハンド」で次へ</div>`;
+}
+function huEnd(winner){
+  hu.over=true; const pot=hu.pot; hu.stack[winner]+=pot; hu.pot=0;
+  huLog(`${nm(winner)}がポット獲得（+${pot}）。`);
+  huRender(); $("#huActions").innerHTML=`<div style="text-align:center;color:var(--sub);width:100%;">「新しいハンド」で次へ</div>`;
+}
+function huRenderActions(youTurn){
+  const a=$("#huActions");
+  if(hu.over){ a.innerHTML=`<div style="text-align:center;color:var(--sub);width:100%;">「新しいハンド」で次へ</div>`; return; }
+  if(youTurn!==true){ a.innerHTML=`<div style="text-align:center;color:var(--sub);width:100%;">CPUが考えています…</div>`; return; }
+  const need=huHigh()-hu.bet.you; let b="";
+  b+=`<button class="btn big fold" data-a="fold">フォールド</button>`;
+  if(need>0) b+=`<button class="btn big call" data-a="call">コール ${Math.min(need,hu.stack.you)}</button>`;
+  else b+=`<button class="btn big" data-a="check">チェック</button>`;
+  if(hu.stack.you>need && hu.raises<HU_MAXRAISE) b+=`<button class="btn big" data-a="${need>0?'raise':'bet'}">${need>0?'レイズ':'ベット'}</button>`;
+  a.innerHTML=b;
+  a.querySelectorAll("button").forEach(btn=>btn.onclick=()=>huAct('you',btn.dataset.a));
+}
+function huRender(reveal){
+  $("#cpuStack").textContent=hu.stack.cpu; $("#youStack").textContent=hu.stack.you;
+  $("#potBox").textContent="POT "+hu.pot;
+  $("#cpuCards").innerHTML=hu.hand.cpu.map(c=>huCardHTML(c,!reveal)).join("");
+  $("#boardCards").innerHTML=hu.board.length?hu.board.map(c=>huCardHTML(c,false)).join(""):`<span style="color:var(--sub);font-size:.74rem;">（プリフロップ）</span>`;
+  $("#youCards").innerHTML=hu.hand.you.map(c=>huCardHTML(c,false)).join("");
+  $("#youBox").classList.toggle("act",hu.turn==='you'&&!hu.over);
+  $("#cpuBox").classList.toggle("act",hu.turn==='cpu'&&!hu.over);
+}
+function huCpuAct(){
+  if(hu.over||hu.turn!=='cpu') return;
+  const c=hu.hand.cpu; let hi=RVAL[c[0][0]],lo=RVAL[c[1][0]];const su=c[0][1]===c[1][1];if(lo>hi)[hi,lo]=[lo,hi];
+  const need=huHigh()-hu.bet.cpu;
+  if(hu.street==='pre'){
+    const t=ysTier(hi,lo,su);
+    if(huHigh()<=HU_BB){
+      if(hu.button==='cpu'){ if(t<=5) huAct('cpu','raise'); else huAct('cpu','fold'); }
+      else { if(t<=2) huAct('cpu','raise'); else huAct('cpu','check'); }
+    } else {
+      if(t<=1 && hu.raises<HU_MAXRAISE) huAct('cpu','raise');
+      else if(t<=4) huAct('cpu','call'); else huAct('cpu','fold');
+    }
+    return;
+  }
+  const s=equity(hu.hand.cpu,null,hu.board,300).eq/100;
+  if(need>0){
+    const odds=need/(hu.pot+need);
+    if(s>0.82 && hu.raises<HU_MAXRAISE && Math.random()<0.6) huAct('cpu','raise');
+    else if(s>=odds+0.04 || s>0.5) huAct('cpu','call');
+    else if(Math.random()<0.07 && hu.raises<HU_MAXRAISE) huAct('cpu','raise');
+    else huAct('cpu','fold');
+  } else {
+    if(s>0.6) huAct('cpu','bet');
+    else if(s<0.35 && Math.random()<0.22) huAct('cpu','bet');
+    else huAct('cpu','check');
+  }
+}
+$("#huNew").onclick=huNew;
 
 /* ===== init ===== */
 $("#chartPos").innerHTML=`
