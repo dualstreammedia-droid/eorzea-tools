@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <title>NLHE キャッシュゲーム基礎トレーナー｜プリフロップ・エクイティ・ポットオッズ</title>
 <meta name="description" content="テキサスホールデム(NLHE)で勝つための基礎反復トレーナー。RFI・vsオープン・BBディフェンスのレンジ判断、エクイティ計算、ポットオッズ/EV判断をブラウザだけで練習できる無料ツール。">
 <style>
@@ -729,7 +730,7 @@ function qAns(call){
   qT++;const right=(call===qState.call);if(right)qC++;
   $("#qCorrect").textContent=qC;$("#qTotal").textContent=qT;$("#qRate").textContent=Math.round(qC/qT*100)+"%";
   $("#qFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：必要エクイティ ${qState.need.toFixed(1)}% に対し ${qState.eq}%<small>${qState.call?'上回るのでコールが+EV':'下回るのでフォールドが正解'}</small></div>`;
-  setTimeout(newQuiz, right?900:1700);
+  lockActions("#quizBox"); showNext("#qFb", newQuiz);
 }
 
 /* ===== ティア式（世界のヨコサワ式・トーナメント用「後ろの人数」） ===== */
