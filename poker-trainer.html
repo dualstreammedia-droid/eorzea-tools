@@ -88,11 +88,13 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .yrank .sw{width:16px;height:16px;border-radius:4px;display:inline-block;vertical-align:-3px;}
 .ydrill{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;}
 .poswrap{margin-top:10px;} .poscap{font-size:.68rem;color:var(--sub);text-align:center;margin-bottom:4px;}
-.posbar{display:flex;gap:3px;justify-content:center;}
-.posbar .ps{flex:1;min-width:30px;max-width:48px;text-align:center;border-radius:6px;padding:4px 1px;
-  font-size:.62rem;font-weight:700;background:var(--panel2);color:var(--sub);border:1px solid var(--line);line-height:1.2;}
-.posbar .ps .bh{font-size:.52rem;font-weight:400;opacity:.85;display:block;margin-top:1px;}
-.posbar .ps.cur{outline:2px solid var(--gold);outline-offset:1px;}
+.postable{position:relative;width:100%;max-width:320px;margin:6px auto 2px;aspect-ratio:1.4/1;}
+.postable .felt2{position:absolute;left:15%;right:15%;top:21%;bottom:21%;
+  background:radial-gradient(ellipse at center,#1f7a4d,#0c4327);border:5px solid #6b4423;border-radius:50%;}
+.postable .pseat{position:absolute;transform:translate(-50%,-50%);min-width:32px;text-align:center;border-radius:7px;
+  padding:3px 4px;font-size:.6rem;font-weight:700;background:var(--panel2);color:var(--sub);border:1px solid var(--line);line-height:1.15;}
+.postable .pseat .bh{display:block;font-size:.5rem;font-weight:400;opacity:.85;}
+.postable .pseat.cur{outline:2px solid var(--gold);outline-offset:1px;z-index:2;}
 .ytag{display:inline-block;padding:2px 9px;border-radius:6px;font-weight:700;font-size:.78rem;}
 /* course accordion */
 .acc{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;}
@@ -297,7 +299,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
 
   <div class="panel">
     <h2><span class="dot"></span>ティア暗記クイズ</h2>
-    <p class="lead" style="text-align:left;margin-bottom:8px;">手を見て<b>「後ろの人数」（色）を当てる</b>クイズ。回答すると<b>参加できる位置（UTG→SB）が帯で点灯</b>するので、「この手はどこから強いか」が画で頭に入ります。</p>
+    <p class="lead" style="text-align:left;margin-bottom:8px;">手を見て<b>「後ろの人数」（色）を当てる</b>クイズ。回答すると<b>9人テーブルの図で参加できる席が点灯</b>するので、「この手はどの席から強いか」が画で頭に入ります。</p>
     <label class="toggle"><input type="checkbox" id="tqReview"> 間違えた手だけ復習する</label>
     <div class="tcard">
       <div class="cards" id="tqCards"></div>
@@ -731,17 +733,23 @@ function ysOpenPosText(t){
   if(ok.length===YS_POS.length) return "どの位置でもオープン（後ろ"+o+"人以下＝全部）";
   return ok[0].n+"〜 でオープン（後ろ"+o+"人以下）";
 }
-// ポジション帯：参加できる席を色で点灯（curNameは現在地をハイライト）
-function posStripHTML(t,curName){
-  const cat=YS_CATS[t], o=cat.open;
-  const cap = o>0 ? "参加できる位置（色つきの席）" : (o===0 ? "オープン不可 → BBでBTNのレイズにコールのみ" : "参加しない（フォールド）");
-  const seats=YS_POS.map(p=>{
-    const on=(o>0 && o>=p.behind);
+// 9人テーブル図：参加できる席を色で点灯（curNameは現在地を金枠でハイライト）
+const YS_SEAT_ORDER=["BTN","SB","BB","UTG","UTG+1","MP","LJ","HJ","CO"]; // BTNを下に時計回り
+const YS_BEHIND={UTG:8,"UTG+1":7,MP:6,LJ:5,HJ:4,CO:3,BTN:2,SB:1,BB:0};
+function posTableHTML(t,curName){
+  const cat=YS_CATS[t], o=cat.open, n=YS_SEAT_ORDER.length;
+  const seats=YS_SEAT_ORDER.map((name,i)=>{
+    const ang=(90+i*(360/n))*Math.PI/180;
+    const x=50+42*Math.cos(ang), y=50+40*Math.sin(ang);
+    const behind=YS_BEHIND[name];
+    const on=(name==="BB") ? (o===0) : (o>0 && o>=behind); // BBは桃(BBコール)のみ点灯
     const style=on?`background:${cat.color};color:${cat.txt};border-color:${cat.color};`:'';
-    const cur=(curName&&p.n===curName)?' cur':'';
-    return `<div class="ps${on?' on':''}${cur}" style="${style}">${p.n}<span class="bh">後${p.behind}</span></div>`;
+    const cur=(curName&&name===curName)?' cur':'';
+    const sub=(name==="BB")?"受け":("後"+behind);
+    return `<div class="pseat${cur}" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%;${style}">${name}<span class="bh">${sub}</span></div>`;
   }).join("");
-  return `<div class="poswrap"><div class="poscap">${cap}</div><div class="posbar">${seats}</div></div>`;
+  const cap=o>0?"色つきの席から参加できる":(o===0?"オープン不可 → BBでBTNのレイズにコールのみ":"参加しない（フォールド）");
+  return `<div class="poswrap"><div class="poscap">${cap}</div><div class="postable"><div class="felt2"></div>${seats}</div></div>`;
 }
 // ランク表
 $("#yrankBody").innerHTML=YS_CATS.map((c,i)=>{
@@ -796,7 +804,7 @@ function ysAnswer(act){
   if(ysMode==="bb"){ reason=(t<=7)?`${cat.tag}＝灰以外なので、BBでBTNのレイズにコールして受ける`:`${cat.tag}。これは降りる手`; }
   else { reason=`${cat.tag} → ${ysOpenPosText(t)}（あなたは後ろ${ysState.pos.behind}人）`; }
   const bd=cat.border?`box-shadow:inset 0 0 0 2px ${cat.border};`:'';
-  $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b><small>${reason}</small></div>`+posStripHTML(t, ysState.pos?ysState.pos.n:null);
+  $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b><small>${reason}</small></div>`+posTableHTML(t, ysState.pos?ysState.pos.n:null);
   setTimeout(ysNew, right?900:2100);
 }
 ysNew();
@@ -869,7 +877,7 @@ function tqPick(guess){
   // 正解ボタンを強調
   $("#tqBtns").querySelectorAll("button").forEach(b=>{ if(+b.dataset.t===t) b.classList.add("miss"); b.style.pointerEvents="none"; });
   const cat=YS_CATS[t]; const bd=cat.border?`box-shadow:inset 0 0 0 2px ${cat.border};`:'';
-  $("#tqFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span><small>${ysOpenPosText(t)}${right?'':'｜白枠が正解'}</small></div>`+posStripHTML(t,null);
+  $("#tqFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span><small>${ysOpenPosText(t)}${right?'':'｜白枠が正解'}</small></div>`+posTableHTML(t,null);
   setTimeout(tqNew, right?1100:2400);
 }
 $("#tqReview").onchange=tqNew;
