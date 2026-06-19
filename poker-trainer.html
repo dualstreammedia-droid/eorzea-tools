@@ -310,7 +310,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
     <label class="toggle"><input type="checkbox" id="tqReview"> 間違えた手だけ復習する</label>
     <div class="tcard">
       <div class="cards" id="tqCards"></div>
-      <div class="qq" style="text-align:center;">この手のランク（色）は？</div>
+      <div class="qq" id="tqQ" style="text-align:center;">この手の「後ろの人数」（色）は？</div>
       <div class="tqgrid" id="tqBtns"></div>
       <div id="tqFb"></div>
       <div class="stats">
@@ -883,17 +883,19 @@ ysNew();
 /* ===== ティア暗記クイズ ===== */
 let tqState=null, tqC=0, tqT=0, tqStreak=0;
 const tqMistakes=new Set();
-function tqRandHand(){
-  // 色付き(非グレー)を中心に出題。グレーは一定確率でスキップ。
-  for(let tries=0;tries<20;tries++){
-    const deck=fullDeck();
-    const a=(Math.random()*52)|0; let b=(Math.random()*52)|0; while(b===a)b=(Math.random()*52)|0;
-    let hi=RVAL[deck[a][0]],lo=RVAL[deck[b][0]];const su=deck[a][1]===deck[b][1];if(lo>hi)[hi,lo]=[lo,hi];
-    if(ysTier(hi,lo,su)===7 && Math.random()<0.7) continue;  // グレーは7割スキップ
-    return {hi,lo,suited:su,c1:deck[a],c2:deck[b]};
+// 出題キュー：全169手をシャッフルし、重複なしで一巡してから次の周回へ
+let tqQueue=[]; const TQ_TOTAL=169;
+function tqBuildQueue(){
+  tqQueue=[];
+  for(let i=2;i<=14;i++)for(let j=2;j<=i;j++){
+    if(i===j) tqQueue.push([i,j,false]); else { tqQueue.push([i,j,true]); tqQueue.push([i,j,false]); }
   }
-  const deck=fullDeck();let hi=RVAL[deck[0][0]],lo=RVAL[deck[1][0]];const su=deck[0][1]===deck[1][1];if(lo>hi)[hi,lo]=[lo,hi];
-  return {hi,lo,suited:su,c1:deck[0],c2:deck[1]};
+  for(let k=tqQueue.length-1;k>0;k--){const r=(Math.random()*(k+1))|0;[tqQueue[k],tqQueue[r]]=[tqQueue[r],tqQueue[k]];}
+}
+function tqNextFromQueue(){
+  if(tqQueue.length===0) tqBuildQueue();
+  const [hi,lo,su]=tqQueue.pop();
+  return tqFromLabel(handLabel(hi,lo,su));
 }
 function tqFromLabel(lbl){
   // "AKs"/"77"/"AQo" → 表示用カード
@@ -911,13 +913,18 @@ function tqRenderBtns(){
 }
 function tqNew(){
   const review=$("#tqReview").checked;
-  let h;
+  let h, prog;
   if(review && tqMistakes.size>0){
     const arr=[...tqMistakes]; h=tqFromLabel(arr[(Math.random()*arr.length)|0]);
-  } else { h=tqRandHand(); }
+    prog=`復習モード：弱点 ${tqMistakes.size}手`;
+  } else {
+    h=tqNextFromQueue();
+    prog=`この周 ${TQ_TOTAL-tqQueue.length} / ${TQ_TOTAL}手目（全部出てから繰り返し）`;
+  }
   tqState=h;
   let left=h.c1,right=h.c2; if(RVAL[h.c2[0]]>RVAL[h.c1[0]]){left=h.c2;right=h.c1;}
   $("#tqCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
+  $("#tqQ").innerHTML=`この手の「後ろの人数」（色）は？<span style="display:block;font-size:.66rem;font-weight:400;color:var(--sub);margin-top:2px;">${prog}</span>`;
   tqRenderBtns(); $("#tqFb").innerHTML="";
 }
 function tqPick(guess){
