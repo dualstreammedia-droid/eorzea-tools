@@ -99,6 +99,7 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .pushctl .fld{flex:1;min-width:140px;}
 .pushctl input[type=range]{width:100%;margin-top:6px;}
 .cell.push{background:#2e8b57;color:#fff;} .cell.foldp{background:#352630;color:#8a7682;}
+.nextq{display:block;width:100%;margin-top:10px;}
 .ytag{display:inline-block;padding:2px 9px;border-radius:6px;font-weight:700;font-size:.78rem;}
 /* course accordion */
 .acc{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;}
@@ -570,6 +571,13 @@ function pcardHTML(rank,suit){
   const red=SRED[suit]?"red":"blk";
   return `<div class="pcard ${red}"><div class="rk">${rank}</div><div class="st">${SSYM[suit]}</div></div>`;
 }
+// 回答後：選択肢を無効化し、フィードバック内に「次の問題」ボタンを出す
+function lockActions(sel){ $(sel).querySelectorAll("button").forEach(b=>{b.disabled=true;b.style.opacity=.45;b.style.pointerEvents="none";}); }
+function showNext(fbSel, fn){
+  const b=document.createElement("button");
+  b.className="btn nextq"; b.textContent="次の問題 →"; b.onclick=fn;
+  $(fbSel).appendChild(b);
+}
 function renderActions(threeway){
   const a=$("#tActions");
   a.innerHTML = threeway
@@ -617,7 +625,7 @@ function answer(act){
   else if(tState.correct==="call") expl="レイズには弱いが、コールで参加して得な手（まさに「レイズはダメでもコールは良い手」）";
   else expl=tState.threeway?"弱すぎるのでフォールド":"レンジ外。降りるのが標準です";
   $("#tFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <b>${ACTLABEL[tState.correct]}</b><small>${expl}</small></div>`;
-  setTimeout(newTrain, right?750:1700);
+  lockActions("#tActions"); showNext("#tFb", newTrain);
 }
 
 /* ===== レンジ表 ===== */
@@ -850,7 +858,7 @@ function ysAnswer(act){
   else { reason=`${cat.tag} → ${ysOpenPosText(t)}（あなたは後ろ${ysState.pos.behind}人）`; }
   const bd=cat.border?`box-shadow:inset 0 0 0 2px ${cat.border};`:'';
   $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b><small>${reason}</small></div>`+posTableHTML(t, ysState.pos?ysState.pos.n:null);
-  setTimeout(ysNew, right?900:2100);
+  lockActions("#ysActions"); showNext("#ysFb", ysNew);
 }
 ysNew();
 // ティア色表
@@ -923,7 +931,7 @@ function tqPick(guess){
   $("#tqBtns").querySelectorAll("button").forEach(b=>{ if(+b.dataset.t===t) b.classList.add("miss"); b.style.pointerEvents="none"; });
   const cat=YS_CATS[t]; const bd=cat.border?`box-shadow:inset 0 0 0 2px ${cat.border};`:'';
   $("#tqFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span><small>${ysOpenPosText(t)}${right?'':'｜白枠が正解'}</small></div>`+posTableHTML(t,null);
-  setTimeout(tqNew, right?1100:2400);
+  showNext("#tqFb", tqNew);
 }
 $("#tqReview").onchange=tqNew;
 tqNew();
@@ -1022,7 +1030,7 @@ function puAnswer(act){
   const K=pushCount(puState.bb,puState.pos.behind), pct=Math.round(K/169*100);
   const reason=`${puState.pos.n}・${puState.bb}BB はプッシュ上位約${pct}%。${lbl}は${puState.correct==="push"?"範囲内":"範囲外"}`;
   $("#puFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} → <b>${puState.correct==="push"?"プッシュ":"フォールド"}</b><small>${reason}</small></div>`;
-  setTimeout(puNew, right?800:2000);
+  lockActions("#puActions"); showNext("#puFb", puNew);
 }
 puNew();
 
