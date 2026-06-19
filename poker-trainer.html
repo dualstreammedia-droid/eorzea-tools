@@ -95,6 +95,10 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
   padding:3px 4px;font-size:.6rem;font-weight:700;background:var(--panel2);color:var(--sub);border:1px solid var(--line);line-height:1.15;}
 .postable .pseat .bh{display:block;font-size:.5rem;font-weight:400;opacity:.85;}
 .postable .pseat.cur{outline:2px solid var(--gold);outline-offset:1px;z-index:2;}
+.pushctl{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 12px;align-items:flex-end;}
+.pushctl .fld{flex:1;min-width:140px;}
+.pushctl input[type=range]{width:100%;margin-top:6px;}
+.cell.push{background:#2e8b57;color:#fff;} .cell.foldp{background:#352630;color:#8a7682;}
 .ytag{display:inline-block;padding:2px 9px;border-radius:6px;font-weight:700;font-size:.78rem;}
 /* course accordion */
 .acc{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;}
@@ -171,6 +175,7 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   <div class="tab" data-tab="equity">エクイティ計算</div>
   <div class="tab" data-tab="odds">ポットオッズ/EV</div>
   <div class="tab" data-tab="yokosawa">ティア式</div>
+  <div class="tab" data-tab="push">プッシュ/フォール</div>
   <div class="tab" data-tab="learn">講座</div>
   <div class="tab" data-tab="cpu">CPU戦</div>
 </div>
@@ -324,6 +329,46 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
       <b>世界のヨコサワ「トーナメント用」レンジ表</b>を再現。各マスの色＝その手で<b>オープンできる「後ろの人数」</b>の上限です。
       紫枠は「2人」、桃はBBコール専用、灰はフォールド。気になるマスがあれば教えてください。
     </div>
+  </div>
+</section>
+
+<!-- ===== PUSH / FOLD ===== -->
+<section id="tab-push" class="hide">
+  <div class="panel">
+    <h2><span class="dot"></span>プッシュ/フォール表（トーナメント終盤・簡易ナッシュ）</h2>
+    <p class="lead" style="text-align:left;margin-bottom:10px;">スタックが短い終盤（目安<b>20BB以下</b>）は、最初に入るなら「<b>オールイン（プッシュ）かフォールド</b>」の二択が基本。中途半端なレイズより迷いがなく、降ろす力（フォールドエクイティ）も最大化できます。スタックと位置を選ぶと、オールインすべき手が点灯します。</p>
+    <div class="pushctl">
+      <label class="fld">自分の位置
+        <select id="pushPos"></select>
+      </label>
+      <label class="fld" style="flex:2;">スタック：<b id="pushBBval">10</b> BB
+        <input type="range" id="pushBB" min="2" max="25" value="10" step="1">
+      </label>
+    </div>
+    <div class="chart" id="pushChart"></div>
+    <div class="legend" id="pushLegend"></div>
+    <div id="pushInfo" class="note"></div>
+    <div class="note" style="border-color:var(--gold)">
+      <b>使い方の目安：</b>スタックが短いほど・後ろの人数が少ない（＝後ろの位置）ほど、プッシュ範囲は広がります。
+      これは<b>厳密なナッシュ均衡そのものではなく簡易モデル（目安）</b>です。実戦ではアンティ量・相手の傾向・ICM（賞金）で前後します。
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span>プッシュ/フォール トレーニング</h2>
+    <div class="tcard">
+      <div class="pos" id="puScene"></div>
+      <div class="cards" id="puCards"></div>
+      <div class="actions" id="puActions"></div>
+      <div id="puFb"></div>
+      <div class="stats">
+        <div class="b"><div class="n" id="puC">0</div><div class="l">正解</div></div>
+        <div class="b"><div class="n" id="puT">0</div><div class="l">出題</div></div>
+        <div class="b"><div class="n" id="puR">-</div><div class="l">正答率</div></div>
+        <div class="b"><div class="n" id="puS">0</div><div class="l">連続正解</div></div>
+      </div>
+    </div>
+    <div class="note">ランダムな「位置・スタック・手」で出題。最初に入る場面（first-in）の判断です。間違えると正解と、その状況でのプッシュ範囲が出ます。</div>
   </div>
 </section>
 
@@ -499,7 +544,7 @@ document.querySelectorAll(".tab").forEach(t=>{
   t.onclick=()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
     t.classList.add("on");
-    ["train","chart","equity","odds","yokosawa","learn","cpu"].forEach(id=>$("#tab-"+id).classList.add("hide"));
+    ["train","chart","equity","odds","yokosawa","push","learn","cpu"].forEach(id=>$("#tab-"+id).classList.add("hide"));
     $("#tab-"+t.dataset.tab).classList.remove("hide");
   };
 });
@@ -882,6 +927,104 @@ function tqPick(guess){
 }
 $("#tqReview").onchange=tqNew;
 tqNew();
+
+/* ===== プッシュ/フォール（簡易ナッシュ） ===== */
+// オールイン強さスコア（プリフロップ・オールインの勝率順を近似）。ペアと高カード重視。
+function shoveEq(hi,lo,suited){
+  if(hi===lo) return 50+(hi-2)*2.9;            // 22:50% 〜 AA:84.8%
+  let s=2.857*hi+0.909*lo+13.18;               // AKo≈65, A2o≈55, 72o≈35 に較正
+  if(suited) s+=3;
+  const gap=hi-lo-1; if(gap>0) s-=Math.min(gap,5)*0.7;
+  return s;
+}
+// 全169手をプッシュ強さで順位付け（1=最強）
+const PUSH_RANK={};
+(function(){
+  const arr=[];
+  for(let i=2;i<=14;i++)for(let j=2;j<=i;j++){
+    if(i===j) arr.push([i,j,false]); else {arr.push([i,j,true]);arr.push([i,j,false]);}
+  }
+  arr.sort((a,b)=>shoveEq(b[0],b[1],b[2])-shoveEq(a[0],a[1],a[2]));
+  arr.forEach((h,idx)=>PUSH_RANK[handLabel(h[0],h[1],h[2])]=idx+1);
+})();
+// SB(後ろBBのみ)基準のプッシュ割合（スタックbb別）。短いほど広い。
+const PUSH_TBL={2:1,3:.97,4:.92,5:.83,6:.76,7:.71,8:.68,9:.63,10:.59,11:.55,12:.52,13:.48,14:.45,15:.42,16:.39,17:.36,18:.33,19:.31,20:.30,22:.25,25:.20,28:.15};
+function fracSB(bb){
+  bb=Math.max(2,Math.min(28,bb));
+  if(PUSH_TBL[bb]!==undefined) return PUSH_TBL[bb];
+  const keys=Object.keys(PUSH_TBL).map(Number).sort((a,b)=>a-b);
+  let lo=keys[0],hi=keys[keys.length-1];
+  for(const k of keys){ if(k<=bb)lo=k; }
+  for(let i=keys.length-1;i>=0;i--){ if(keys[i]>=bb)hi=keys[i]; }
+  if(lo===hi) return PUSH_TBL[lo];
+  return PUSH_TBL[lo]+(PUSH_TBL[hi]-PUSH_TBL[lo])*(bb-lo)/(hi-lo);
+}
+// 後ろの人数で締める（1人増えるごとに約0.8倍）
+function pushCount(bb,behind){
+  const frac=Math.min(1,fracSB(bb)*Math.pow(0.80,behind-1));
+  return Math.max(1,Math.round(169*frac));
+}
+function shouldPush(hi,lo,suited,bb,behind){ return PUSH_RANK[handLabel(hi,lo,suited)]<=pushCount(bb,behind); }
+// 位置セレクト（ティア式と同じ後ろの人数）
+$("#pushPos").innerHTML=YS_POS.map(p=>`<option value="${p.n}">${p.n}（後ろ${p.behind}人）</option>`).join("");
+$("#pushPos").value="BTN";
+function renderPushChart(){
+  const posName=$("#pushPos").value, bb=+$("#pushBB").value, behind=YS_BEHIND[posName];
+  $("#pushBBval").textContent=bb;
+  const K=pushCount(bb,behind);
+  const ord=[...RANKS].reverse(); let html="";
+  for(let i=0;i<13;i++)for(let j=0;j<13;j++){
+    const r1=RVAL[ord[i]],r2=RVAL[ord[j]];
+    let hi,lo,suited,label;
+    if(i===j){hi=lo=r1;suited=false;label=ord[i]+ord[i];}
+    else if(i<j){hi=Math.max(r1,r2);lo=Math.min(r1,r2);suited=true;label=ord[i]+ord[j]+"s";}
+    else {hi=Math.max(r1,r2);lo=Math.min(r1,r2);suited=false;label=ord[j]+ord[i]+"o";}
+    const push=PUSH_RANK[handLabel(hi,lo,suited)]<=K;
+    html+=`<div class="cell ${push?'push':'foldp'} ${i===j?'pair':''}">${label}</div>`;
+  }
+  $("#pushChart").innerHTML=html;
+  $("#pushLegend").innerHTML=`<span><i style="background:#2e8b57"></i>プッシュ（オールイン）</span><span><i style="background:#352630"></i>フォールド</span>`;
+  const pct=Math.round(K/169*100);
+  $("#pushInfo").innerHTML=`<b>${posName}（後ろ${behind}人）／ ${bb}BB</b> → 上位 <b>約${pct}%（${K}手）</b>をオールイン。`;
+}
+$("#pushPos").onchange=renderPushChart;
+$("#pushBB").oninput=renderPushChart;
+renderPushChart();
+
+// トレーニング
+let puState=null,puC=0,puT=0,puStreak=0;
+const PU_BBSET=[4,6,8,10,12,15,20];
+function puRenderActions(){
+  $("#puActions").innerHTML=
+    `<button class="btn big" data-act="push">プッシュ<br><small>オールイン</small></button>
+     <button class="btn big fold" data-act="fold">フォールド<br><small>降りる</small></button>`;
+  $("#puActions").querySelectorAll("button").forEach(b=>b.onclick=()=>puAnswer(b.dataset.act));
+}
+function puNew(){
+  const deck=fullDeck();
+  for(let i=deck.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[deck[i],deck[j]]=[deck[j],deck[i]];}
+  const c1=deck[0],c2=deck[1];let hi=RVAL[c1[0]],lo=RVAL[c2[0]];const suited=c1[1]===c2[1];if(lo>hi)[hi,lo]=[lo,hi];
+  const pos=YS_POS[(Math.random()*YS_POS.length)|0];
+  const bb=PU_BBSET[(Math.random()*PU_BBSET.length)|0];
+  const correct=shouldPush(hi,lo,suited,bb,pos.behind)?"push":"fold";
+  puState={hi,lo,suited,pos,bb,correct};
+  $("#puScene").innerHTML=`<b>${pos.n}</b>（後ろ${pos.behind}人）／ スタック <b>${bb}BB</b><br>最初に入る ＝ プッシュ？`;
+  let left=c1,right=c2;if(RVAL[c2[0]]>RVAL[c1[0]]){left=c2;right=c1;}
+  $("#puCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
+  puRenderActions(); $("#puFb").innerHTML="";
+}
+function puAnswer(act){
+  if(!puState) return;
+  const right=(act===puState.correct);
+  puT++; if(right){puC++;puStreak++;} else puStreak=0;
+  $("#puC").textContent=puC;$("#puT").textContent=puT;$("#puR").textContent=Math.round(puC/puT*100)+"%";$("#puS").textContent=puStreak;
+  const lbl=handLabel(puState.hi,puState.lo,puState.suited);
+  const K=pushCount(puState.bb,puState.pos.behind), pct=Math.round(K/169*100);
+  const reason=`${puState.pos.n}・${puState.bb}BB はプッシュ上位約${pct}%。${lbl}は${puState.correct==="push"?"範囲内":"範囲外"}`;
+  $("#puFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} → <b>${puState.correct==="push"?"プッシュ":"フォールド"}</b><small>${reason}</small></div>`;
+  setTimeout(puNew, right?800:2000);
+}
+puNew();
 
 /* ===== 初心者講座 ===== */
 const LESSONS=[
