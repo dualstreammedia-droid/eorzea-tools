@@ -79,9 +79,10 @@ label.fld{font-size:.76rem;color:var(--sub);display:flex;flex-direction:column;g
 .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:4px;}
 /* yokosawa tiers */
 .cell.ys1{background:#1a2a5e;color:#fff} .cell.ys2{background:#c0392b;color:#fff}
-.cell.ys3{background:#e08a1e;color:#2a1c00} .cell.ys4{background:#2e8b57;color:#fff}
-.cell.ys5{background:#3a7bd5;color:#fff} .cell.ys6{background:#7a4fb0;color:#fff}
-.cell.ys7{background:#e58aa8;color:#2a1020} .cell.ys8{background:#4f5454;color:#aeb6b6}
+.cell.ys3{background:#e0a526;color:#2a1c00} .cell.ys4{background:#2e8b57;color:#fff}
+.cell.ys5{background:#3a9bd5;color:#fff} .cell.ys6{background:#f2f2f2;color:#1a1a1a}
+.cell.ys7{background:#efa9e2;color:#3a1030;box-shadow:inset 0 0 0 2px #b62fd6}
+.cell.ys8{background:#efa9e2;color:#3a1030} .cell.ys9{background:#565b5b;color:#aeb6b6}
 .yrank{width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:4px;}
 .yrank td,.yrank th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;}
 .yrank .sw{width:16px;height:16px;border-radius:4px;display:inline-block;vertical-align:-3px;}
@@ -255,25 +256,23 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
 <!-- ===== YOKOSAWA ===== -->
 <section id="tab-yokosawa" class="hide">
   <div class="panel">
-    <h2><span class="dot"></span>ティア式（カラーランク）</h2>
-    <p class="lead" style="text-align:left;margin-bottom:10px;">ハンドを8段階のカラーティアに分け、ポジションとの関係でアクションを決める方式。色が濃いほど強く、どこからでも参加できます。</p>
+    <h2><span class="dot"></span>ティア式（世界のヨコサワ式・トーナメント用）</h2>
+    <p class="lead" style="text-align:left;margin-bottom:10px;">手を「<b>後ろの人数</b>」で色分けする方式。<b>自分の後ろ（まだ動いていない人）の人数</b>を数え、その手の色が「◯人以下ならオープン」を満たせば参加します。位置を暗記しなくても、人数を数えるだけで判断できます。</p>
     <table class="yrank">
-      <thead><tr><th>ランク</th><th>色</th><th>オープン可能な位置(6max)</th></tr></thead>
+      <thead><tr><th>色</th><th>後ろの人数</th><th>オープンできる位置</th></tr></thead>
       <tbody id="yrankBody"></tbody>
     </table>
     <div class="note">
-      <b>ルール：</b>オープンは自分の手のランクがその位置の基準以上なら参加。
-      vsレイズ → 相手の基準より<b>+1ランク上でコール／+2ランク上で3ベット</b>。
-      BBは弱いランクまで広くコール（対BTNは桃まで）。
+      <b>読み方：</b>「8人」＝後ろに8人いてもオープン（＝どの位置からでも）。「3人」＝後ろが3人以下（CO以降）でオープン。
+      <b>桃</b>は自分からは開かず、<b>BBでBTNのレイズにコール</b>専用。<b>灰</b>は参加しない手です。
     </div>
   </div>
 
   <div class="panel">
     <h2><span class="dot"></span>ティア式トレーニング</h2>
     <div class="modesel">
-      <div class="mbtn on" data-ym="rfi">RFI<small>最初に参加</small></div>
-      <div class="mbtn" data-ym="vsopen">vsオープン<small>BTNで対応</small></div>
-      <div class="mbtn" data-ym="bb">BBディフェンス<small>BBで受ける</small></div>
+      <div class="mbtn on" data-ym="rfi">RFI<small>後ろの人数で判断</small></div>
+      <div class="mbtn" data-ym="bb">BBディフェンス<small>対BTNのレイズ</small></div>
     </div>
     <div class="tcard">
       <div class="pos" id="ysSceneTxt"></div>
@@ -287,12 +286,12 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
         <div class="b"><div class="n" id="ysS">0</div><div class="l">連続正解</div></div>
       </div>
     </div>
-    <div class="note">ティア式（カラーランク）のロジックで判定します。間違えるとそのハンドのティアと正解が出るので、色ランクが体に入ります。</div>
+    <div class="note">「後ろの人数」と手の色を見比べて判断。間違えると、その手の色（人数表記）とオープンできる位置が出るので、色と位置が結びついて覚えられます。</div>
   </div>
 
   <div class="panel">
     <h2><span class="dot"></span>ティア暗記クイズ</h2>
-    <p class="lead" style="text-align:left;margin-bottom:8px;">手を見て<b>色（ランク）を当てる</b>クイズ。これを覚えれば、あとは位置のルールを当てるだけで全ポジションの判断ができます。</p>
+    <p class="lead" style="text-align:left;margin-bottom:8px;">手を見て<b>「後ろの人数」（色）を当てる</b>クイズ。ボタンは人数表記。これを覚えれば、あとは後ろの人数を数えるだけで全ポジションの判断ができます。</p>
     <label class="toggle"><input type="checkbox" id="tqReview"> 間違えた手だけ復習する</label>
     <div class="tcard">
       <div class="cards" id="tqCards"></div>
@@ -310,13 +309,12 @@ footer{text-align:center;color:var(--sub);font-size:.74rem;margin-top:24px;line-
   </div>
 
   <div class="panel">
-    <h2><span class="dot"></span>ティア色表（復元版）</h2>
+    <h2><span class="dot"></span>ティア色表（後ろの人数）</h2>
     <div class="chart" id="ysChart"></div>
     <div class="legend" id="ysLegend"></div>
     <div class="note" style="border-color:var(--gold)">
-      <b>要確認：</b>この色表は<b>セル数（紺5/赤8/橙7/緑16/青11/紫23/桃12/灰87）に合わせた強さ較正の復元</b>です。
-      強いティアは実物と一致しますが、弱いティアの一部セルは本物のチャートと前後する可能性があります。
-      お手元の本物と見比べて「このマスは違う」があれば教えてください。該当セルを直します。
+      <b>世界のヨコサワ「トーナメント用」レンジ表</b>を再現。各マスの色＝その手で<b>オープンできる「後ろの人数」</b>の上限です。
+      紫枠は「2人」、桃はBBコール専用、灰はフォールド。気になるマスがあれば教えてください。
     </div>
   </div>
 </section>
@@ -673,81 +671,77 @@ function qAns(call){
   setTimeout(newQuiz, right?900:1700);
 }
 
-/* ===== ティア式（カラーランク） ===== */
-// ハンドの強さスコア（プレイアビリティ加味）。降順ソート→セル数で8ティアに分割。
-function ysScore(hi,lo,suited){
-  if(hi===lo) return 95+hi*9;               // ペアは強さ順に中盤へ配置（AA最強〜22中位）
-  let s=hi*6+lo*4;
-  if(suited) s+=20;
-  const gap=hi-lo;
-  if(gap===1) s+=18; else if(gap===2) s+=9; else if(gap===3) s+=4;
-  if(suited&&gap===1&&lo>=4&&lo<=8) s+=20;  // スーテッドコネクター厚遇
-  if(suited&&gap===2&&lo>=4&&lo<=8) s+=8;
-  if(lo>=10) s+=16;                          // 両ブロードウェイ
-  if(hi===14) s+=8;                          // エースハイ
-  if(hi===13&&suited) s+=3;
-  return s;
-}
-// 実物チャート準拠の手動上書き（自信を持って読めたセル）
-const YS_OVERRIDE={ "76s":2, "65s":3, "54s":3, "87s":3 };
-const YS_COUNTS=[5,8,7,16,11,23,12,87];      // 紺5/赤8/橙7/緑16/青11/紫23/桃12/灰87
-const YS_NAMES=["SS(紺)","S(赤)","A(橙)","B(緑)","C(青)","D(紫)","境目(桃)","×(灰)"];
-const YS_COLOR=["#1a2a5e","#c0392b","#e08a1e","#2e8b57","#3a7bd5","#7a4fb0","#e58aa8","#4f5454"];
-const YS_OPENPOS=["どこでも","どこでも","EP〜(6max:UTG)","HJ〜","CO〜","BTN/SB〜","BB専用(コール)","フォールド"];
-// 全169ハンド列挙→スコア→ティア割当
+/* ===== ティア式（世界のヨコサワ式・トーナメント用「後ろの人数」） ===== */
+// 9カテゴリ。open = その手でオープンできる「後ろの人数」の上限。
+const YS_CATS=[
+  {name:"紺", tag:"8人(強)",  color:"#1a2a5e", txt:"#fff",    open:8},
+  {name:"赤", tag:"8人(中)",  color:"#c0392b", txt:"#fff",    open:8},
+  {name:"橙", tag:"8人(弱)",  color:"#e0a526", txt:"#2a1c00", open:8},
+  {name:"緑", tag:"6〜7人",   color:"#2e8b57", txt:"#fff",    open:7},
+  {name:"水", tag:"4〜5人",   color:"#3a9bd5", txt:"#fff",    open:5},
+  {name:"白", tag:"3人",      color:"#f2f2f2", txt:"#1a1a1a", open:3},
+  {name:"紫", tag:"2人",      color:"#efa9e2", txt:"#3a1030", open:2, border:"#b62fd6"},
+  {name:"桃", tag:"BBコール", color:"#efa9e2", txt:"#3a1030", open:0},
+  {name:"灰", tag:"フォールド",color:"#565b5b", txt:"#aeb6b6", open:-1}
+];
+const YS_IDX={N:0,R:1,O:2,G:3,C:4,W:5,X:6,P:7,F:8};
+// 実物の13x13レンジ表（行=高い方A..2, 列=A..2）。画像をピクセル解析して復元。
+const YS_GRID=[
+ "NNRRRGGGGGGGG", // A
+ "NNROGGWWWWWWW", // K
+ "RONOGCWWWXXXX", // Q
+ "OGCROCWWXPPPP", // J
+ "GCWCRGCXPPPPF", // T
+ "CWWWWRCWXPFFF", // 9
+ "WPPPPXOWXPFFF", // 8
+ "WPPFFPPOWXPFF", // 7
+ "XPFFFFFFGWXPF", // 6
+ "PPFFFFFFFGXPF", // 5
+ "PFFFFFFFFFCPF", // 4
+ "PFFFFFFFFFFCF", // 3
+ "PFFFFFFFFFFFC"  // 2
+];
+const YS_DESC=["A","K","Q","J","T","9","8","7","6","5","4","3","2"];
 const YSMAP={};
 (function buildYS(){
-  const hands=[];
-  for(let i=2;i<=14;i++) for(let j=2;j<=i;j++){
-    if(i===j){ hands.push([i,j,false]); }
-    else { hands.push([i,j,true]); hands.push([i,j,false]); }
+  for(let r=0;r<13;r++) for(let c=0;c<13;c++){
+    const hi=Math.max(RVAL[YS_DESC[r]],RVAL[YS_DESC[c]]);
+    const lo=Math.min(RVAL[YS_DESC[r]],RVAL[YS_DESC[c]]);
+    YSMAP[handLabel(hi,lo,c>r)]=YS_IDX[YS_GRID[r][c]];
   }
-  hands.sort((a,b)=>ysScore(b[0],b[1],b[2])-ysScore(a[0],a[1],a[2]));
-  let tier=0,inTier=0;
-  for(const [hi,lo,su] of hands){
-    while(inTier>=YS_COUNTS[tier]){ tier++; inTier=0; }
-    YSMAP[handLabel(hi,lo,su)]=tier; inTier++;
-  }
-  Object.assign(YSMAP, YS_OVERRIDE);          // 実物準拠の手動補正
 })();
-function ysTier(hi,lo,suited){ return YSMAP[handLabel(hi,lo,suited)]; } // 0..7
-// 6maxオープン基準（そのティア番号<=基準でオープン）
-const YS_OPEN={UTG:3,HJ:3,CO:4,BTN:5,SB:5}; // B=3,C=4,D=5 (0-index)
-function ysAction(hi,lo,suited,kind,pos){
-  const t=ysTier(hi,lo,suited);
-  if(kind==="rfi") return t<=YS_OPEN[pos]?"open":"fold";
-  if(kind==="vs"){ const OT=YS_OPEN[pos]; if(t<=OT-2)return"3bet"; if(t<=OT-1)return"call"; return"fold"; }
-  // bb: 強ければ3ベット、弱いランクまで広くコール（後ろの位置ほど広い）
-  if(t<=1) return "3bet";
-  const lim = (pos==="BTN"||pos==="SB")?6 : (pos==="CO")?5 : 4;
-  return t<=lim?"call":"fold";
-}
-const YS_ACTCOLOR={open:"#2e8b57","3bet":"#e08a1e",call:"#3a7bd5",fold:"#c0392b"};
-// そのティアがどの位置からオープン可かのテキスト
-function tierOpenText(t){
-  const opens=POSORDER.filter(p=>t<=YS_OPEN[p]);
-  if(opens.length===0) return "どの位置でもオープン不可（BBコール専用 or 降り）";
-  if(opens.length===POSORDER.length) return "どの位置からでもオープン可";
-  return opens.join("/")+" からのみオープン可";
+function ysTier(hi,lo,suited){ return YSMAP[handLabel(hi,lo,suited)]; } // 0..8
+// 後ろの人数（位置）の定義。トーナメント用フルリング想定。
+const YS_POS=[
+  {n:"UTG",behind:8},{n:"UTG+1",behind:7},{n:"MP",behind:6},{n:"LJ",behind:5},
+  {n:"HJ",behind:4},{n:"CO",behind:3},{n:"BTN",behind:2},{n:"SB",behind:1}
+];
+// その色がどの位置からオープンできるか（後ろの人数で判定）
+function ysOpenPosText(t){
+  const o=YS_CATS[t].open;
+  if(o<0) return "参加しない（フォールド）";
+  if(o===0) return "自分からは開かない。BBでBTNのレイズにコール専用";
+  const ok=YS_POS.filter(p=>p.behind<=o);
+  if(ok.length===YS_POS.length) return "どの位置でもオープン（後ろ"+o+"人以下＝全部）";
+  return ok[0].n+"〜 でオープン（後ろ"+o+"人以下）";
 }
 // ランク表
-$("#yrankBody").innerHTML=YS_NAMES.map((n,i)=>
-  `<tr><td><span class="sw" style="background:${YS_COLOR[i]}"></span> ${n.split("(")[0]}</td><td>${n.match(/\((.+)\)/)[1]}</td><td>${YS_OPENPOS[i]}</td></tr>`
-).join("");
+$("#yrankBody").innerHTML=YS_CATS.map((c,i)=>{
+  const bd=c.border?`box-shadow:inset 0 0 0 2px ${c.border};`:'';
+  return `<tr><td><span class="sw" style="background:${c.color};${bd}"></span> ${c.name}</td><td>${c.tag}</td><td>${ysOpenPosText(i)}</td></tr>`;
+}).join("");
 // ティア式トレーニング（採点式）
 let ysMode="rfi", ysState=null, ysCo=0, ysTo=0, ysStreak=0;
-const YSKEYS={vsopen:["UTG","HJ","CO"], bb:["UTG","HJ","CO","BTN","SB"]};
 document.querySelectorAll('[data-ym]').forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll('[data-ym]').forEach(x=>x.classList.remove("on"));
     b.classList.add("on"); ysMode=b.dataset.ym; ysNew();
   };
 });
-function ysRenderActions(threeway){
+function ysRenderActions(){
   const a=$("#ysActions");
-  a.innerHTML = threeway
-    ? `<button class="btn big" data-act="3bet">3ベット<br><small>再レイズ</small></button>
-       <button class="btn big call" data-act="call">コール<br><small>付き合う</small></button>
+  a.innerHTML = (ysMode==="bb")
+    ? `<button class="btn big call" data-act="call">コール<br><small>受ける</small></button>
        <button class="btn big fold" data-act="fold">フォールド<br><small>降りる</small></button>`
     : `<button class="btn big" data-act="open">オープン<br><small>レイズ</small></button>
        <button class="btn big fold" data-act="fold">フォールド<br><small>降りる</small></button>`;
@@ -757,17 +751,21 @@ function ysNew(){
   const deck=fullDeck();
   for(let i=deck.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[deck[i],deck[j]]=[deck[j],deck[i]];}
   const c1=deck[0],c2=deck[1];let hi=RVAL[c1[0]],lo=RVAL[c2[0]];const suited=c1[1]===c2[1];if(lo>hi)[hi,lo]=[lo,hi];
-  let kind,pos,scene,threeway;
-  if(ysMode==="rfi"){ pos=POSORDER[(Math.random()*POSORDER.length)|0]; kind="rfi"; threeway=false;
-    scene=`あなた: <b>${pos}</b>（最初に参加 ＝ RFI）`; }
-  else { const keys=YSKEYS[ysMode]; pos=keys[(Math.random()*keys.length)|0]; kind=(ysMode==="vsopen")?"vs":"bb"; threeway=true;
-    scene=(ysMode==="vsopen")?`<b>${pos}</b> がオープン → あなた: <b>BTN</b>`:`<b>${pos}</b> がオープン → あなた: <b>BB</b>`; }
-  const correct=ysAction(hi,lo,suited,kind,pos);
-  ysState={hi,lo,suited,correct,threeway,kind,pos};
+  const t=ysTier(hi,lo,suited);
+  let correct,scene,pos=null;
+  if(ysMode==="bb"){
+    correct=(t<=7)?"call":"fold"; // 灰(フォールド)以外はBBで受ける
+    scene=`<b>BTN</b> がオープン → あなた: <b>BB</b>（受ける？）`;
+  } else {
+    pos=YS_POS[(Math.random()*YS_POS.length)|0];
+    correct=(YS_CATS[t].open>=pos.behind)?"open":"fold";
+    scene=`あなた: <b>${pos.n}</b> ＝ 後ろに <b>${pos.behind}人</b>（最初に参加 ＝ RFI）`;
+  }
+  ysState={hi,lo,suited,correct,t,pos};
   $("#ysSceneTxt").innerHTML=scene;
   let left=c1,right=c2;if(RVAL[c2[0]]>RVAL[c1[0]]){left=c2;right=c1;}
   $("#ysCards").innerHTML=pcardHTML(left[0],left[1])+pcardHTML(right[0],right[1]);
-  ysRenderActions(threeway); $("#ysFb").innerHTML="";
+  ysRenderActions(); $("#ysFb").innerHTML="";
 }
 function ysAnswer(act){
   if(!ysState) return;
@@ -775,12 +773,12 @@ function ysAnswer(act){
   ysTo++; if(right){ysCo++;ysStreak++;} else ysStreak=0;
   $("#ysC").textContent=ysCo;$("#ysT").textContent=ysTo;$("#ysR").textContent=Math.round(ysCo/ysTo*100)+"%";$("#ysS").textContent=ysStreak;
   const lbl=handLabel(ysState.hi,ysState.lo,ysState.suited);
-  const t=ysTier(ysState.hi,ysState.lo,ysState.suited);
+  const t=ysState.t, cat=YS_CATS[t];
   let reason;
-  if(ysState.kind==="rfi"){ reason=`${YS_NAMES[t]}は ${tierOpenText(t)}`; }
-  else if(ysState.kind==="vs"){ reason=`相手${ysState.pos}の基準より、+1ランク上でコール／+2ランク上で3ベット`; }
-  else { reason=(ysState.pos==="BTN"||ysState.pos==="SB")?`BB対${ysState.pos}：桃まで広くコール`:`BB対${ysState.pos}：通常域までコール`; }
-  $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${YS_COLOR[t]};color:#fff;font-size:.72rem;">${YS_NAMES[t]}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b><small>${reason}</small></div>`;
+  if(ysMode==="bb"){ reason=(t<=7)?`${cat.tag}＝灰以外なので、BBでBTNのレイズにコールして受ける`:`${cat.tag}。これは降りる手`; }
+  else { reason=`${cat.tag} → ${ysOpenPosText(t)}（あなたは後ろ${ysState.pos.behind}人）`; }
+  const bd=cat.border?`box-shadow:inset 0 0 0 2px ${cat.border};`:'';
+  $("#ysFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span> → <b>${ACTLABEL[ysState.correct]||ysState.correct}</b><small>${reason}</small></div>`;
   setTimeout(ysNew, right?750:1700);
 }
 ysNew();
@@ -796,7 +794,10 @@ ysNew();
     html+=`<div class="cell ys${ysTier(hi,lo,suited)+1} ${i===j?'pair':''}">${label}</div>`;
   }
   $("#ysChart").innerHTML=html;
-  $("#ysLegend").innerHTML=YS_NAMES.map((n,i)=>`<span><i style="background:${YS_COLOR[i]}"></i>${n}</span>`).join("");
+  $("#ysLegend").innerHTML=YS_CATS.map((c)=>{
+    const bd=c.border?`outline:2px solid ${c.border};outline-offset:-2px;`:'';
+    return `<span><i style="background:${c.color};${bd}"></i>${c.name}:${c.tag}</span>`;
+  }).join("");
 })();
 
 /* ===== ティア暗記クイズ ===== */
@@ -822,9 +823,10 @@ function tqFromLabel(lbl){
   return {hi,lo,suited:su,c1,c2};
 }
 function tqRenderBtns(){
-  $("#tqBtns").innerHTML=YS_NAMES.map((n,i)=>
-    `<button class="tqbtn" data-t="${i}" style="background:${YS_COLOR[i]};${i===7?'color:#cdd':''}">${n}</button>`
-  ).join("");
+  $("#tqBtns").innerHTML=YS_CATS.map((c,i)=>{
+    const bd=c.border?`box-shadow:inset 0 0 0 2px ${c.border};`:'';
+    return `<button class="tqbtn" data-t="${i}" style="background:${c.color};color:${c.txt};${bd}">${c.tag}</button>`;
+  }).join("");
   $("#tqBtns").querySelectorAll("button").forEach(b=>b.onclick=()=>tqPick(+b.dataset.t));
 }
 function tqNew(){
@@ -848,7 +850,8 @@ function tqPick(guess){
   $("#tqC").textContent=tqC;$("#tqT").textContent=tqT;$("#tqR").textContent=Math.round(tqC/tqT*100)+"%";$("#tqW").textContent=tqMistakes.size;
   // 正解ボタンを強調
   $("#tqBtns").querySelectorAll("button").forEach(b=>{ if(+b.dataset.t===t) b.classList.add("miss"); b.style.pointerEvents="none"; });
-  $("#tqFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <span class="ytag" style="background:${YS_COLOR[t]};color:#fff;font-size:.72rem;">${YS_NAMES[t]}</span><small>${right?'':'白枠が正解の色です'}</small></div>`;
+  const cat=YS_CATS[t]; const bd=cat.border?`box-shadow:inset 0 0 0 2px ${cat.border};`:'';
+  $("#tqFb").innerHTML=`<div class="fb ${right?'ok':'ng'}">${right?'正解':'不正解'}：${lbl} は <span class="ytag" style="background:${cat.color};color:${cat.txt};${bd}font-size:.72rem;">${cat.tag}</span><small>${ysOpenPosText(t)}${right?'':'｜白枠が正解'}</small></div>`;
   setTimeout(tqNew, right?700:1700);
 }
 $("#tqReview").onchange=tqNew;
